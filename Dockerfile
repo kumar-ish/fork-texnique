@@ -1,4 +1,5 @@
-FROM golang:1.18-alpine
+# syntax=docker/dockerfile:1
+FROM golang:1.18-alpine AS build
 
 WORKDIR /app
 
@@ -12,8 +13,19 @@ COPY *.go ./
 COPY frontend ./frontend
 COPY problems.json ./
 
-RUN go build -o /forktexnique
+RUN export CGO_ENABLED=0 && go build -o /forktexnique
+
+## Deploy / multistage process
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /forktexnique /forktexnique
+COPY frontend ./frontend
+COPY problems.json ./
 
 EXPOSE 8080
-CMD [ "/forktexnique" ]
 
+USER nonroot:nonroot
+
+CMD [ "/forktexnique" ]
