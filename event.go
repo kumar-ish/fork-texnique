@@ -115,18 +115,19 @@ func GetProblems() *Problems {
 	return problems
 }
 
-func endGame(c *Client, message string) {
+func endGame(c *Client, message string) error {
 	var broadMessage = EndGameEvent{message}
 
 	data, err := json.Marshal(broadMessage)
 	if err != nil {
-		fmt.Errorf("failed to marshal broadcast message: %v", err)
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
 	var outgoingEvent = Event{EventEndGame, data}
 	for client := range c.lobby.clients {
 		client.egress <- outgoingEvent
 	}
+	return nil
 }
 
 // EventStartGame is sent when the game is started by the owner
