@@ -131,6 +131,7 @@ func NewLobby(ctx context.Context, name string) *Lobby {
 	for i := 0; i < len(l.Problems); i++ {
 		// Generate x as a random value between 0 and the length of the problems array
 		// and as long as the randomly chosen problem isn't already selected
+		// TODO: needs to be getting a random number from the _size_, not the length to be random
 		x := rand.Intn(len(booleanArray))
 		for booleanArray[x] {
 			x = rand.Intn(len(booleanArray))
