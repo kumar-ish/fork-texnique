@@ -1,5 +1,3 @@
-// Have a problem to add? Submit it here: https://forms.gle/DXjPeTL5DbJBhKRv8
-
 let problems = [
 	{
 		"title": "Quadratic Formula",
@@ -902,3 +900,26 @@ let problems = [
 		"latex": String.raw`\left | \Pr_{x \leftarrow \{0,1\}^k} [\mathcal A (G(x)) = 1] - \Pr_{x \leftarrow \{0,1\}^{p(k)}} [\mathcal A (x) = 1]\right | < \mu(k)`
 	}
 ];
+
+
+PROBLEMS_FILE = "problems.json"
+
+function write_to_json() {
+	json = JSON.stringify(problems)
+	fs.writeFile(PROBLEMS_FILE, json, function(err) {
+		if (err) throw err;
+		console.log('complete');
+	});
+}
+
+function read_from_json() {
+	fs.readFile(PROBLEMS_FILE, 'utf8', function readFileCallback(err, data){
+		if (err){
+			console.log(err);
+		} else {
+		obj = JSON.parse(data);
+		console.log(obj["problems"][0]["latex"])
+	}});
+}
+
+read_from_json()

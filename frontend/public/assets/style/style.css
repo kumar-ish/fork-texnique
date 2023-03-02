@@ -83,6 +83,16 @@ main {
 	background-color: #ccc;
 }
 
+/* @dev needs to be used in conjunction (override) LaTeX button CSS class (.latex-button) */
+.latex-input { 
+	padding: 5px;
+}
+
+/* @dev needs to be used in conjunction (override) LaTeX button CSS class (.latex-button) */
+.latex-smaller-input { 
+	padding: 2px;
+}
+
 
 #left-buttons {
 	float: left;
@@ -180,6 +190,10 @@ main {
 	color: white;
 	width: 100%;
 }
+
+.centered-list td {
+	text-align: center;	
+}  
 
 #result {
 	height: 20px;
