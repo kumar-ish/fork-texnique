@@ -1,0 +1,2 @@
+# Don't copy over test Golang files
+*_test.go
