@@ -153,7 +153,7 @@ func StartGameHandler(event Event, c *Client) error {
 	}
 
 	// Send the first problem
-	var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[0]}
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[0]}
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
@@ -178,7 +178,7 @@ func GiveAnswerHandler(event Event, c *Client) error {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
 	user := c.lobby.userMapping[c.name]
-	problem := (*GetProblems()).Problems[user.questionNumber]
+	problem := GetProblems().Problems[user.questionNumber]
 	if !problem.CheckAnswer(chatevent.Answer) {
 		c.egress <- Event{EventWrongAnswer, nil}
 		return fmt.Errorf("bad payload in request")
@@ -208,7 +208,7 @@ func GiveAnswerHandler(event Event, c *Client) error {
 		endGame(c, "Ran out of problems!")
 	} else {
 		// Send client new problem
-		var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[user.questionNumber]}
+		var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[user.questionNumber]}
 
 		data, err := json.Marshal(newProblemBroadcast)
 		if err != nil {
@@ -233,7 +233,7 @@ func RequestProblemHandler(event Event, c *Client) error {
 		return nil
 	}
 
-	var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[user.questionNumber]}
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[user.questionNumber]}
 
 	data, err := json.Marshal(newProblemBroadcast)
 	if err != nil {
