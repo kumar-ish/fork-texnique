@@ -10,8 +10,6 @@ RUN go mod download
 
 # Copy required files to run the container
 COPY *.go ./
-COPY frontend ./frontend
-COPY problems.json ./
 
 RUN export CGO_ENABLED=0 && go build -o /forktexnique
 
