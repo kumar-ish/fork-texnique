@@ -511,6 +511,11 @@ function login() {
     return false;
 }
 
+function convertLobbyToLogin() {
+    $("#create-lobby-form").hide();
+    $("#login-form").show();
+}
+
 /**
  * login will send a login request to the server and then 
  * connect websocket
@@ -547,8 +552,7 @@ function createLobby() {
         });
         $("#copy-lobby-button").text("Copy Link");
 
-        $("#create-lobby-form").hide();
-        $("#login-form").show();
+        convertLobbyToLogin();
     }).catch((e) => { alert(e) });
     return false;
 }
@@ -623,5 +627,13 @@ $(document).ready(function() {
       }
     });
 
+    if (isMultiplayer) {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
+        if (urlParams.get('l') != null) {
+            convertLobbyToLogin();
+        }
+    }
     showIntro();
 });
