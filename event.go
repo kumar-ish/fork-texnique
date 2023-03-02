@@ -24,34 +24,32 @@ type Event struct {
 // and triggered depending on the type
 type EventHandler func(event Event, c *Client) error
 
+// server -> client events
 const (
 	// EventNewMember is sent when a new member joins the game
-	// server -> client
 	EventNewMember = "new_member"
 	// EventRemoveMember is sent when a member leaves the game
-	// server -> client
 	EventRemoveMember = "remove_member"
-	// EventStartGameOwner is sent when the game is started by the owner, by the owner
-	// client -> server
-	EventStartGameOwner = "start_game_owner"
 	// EventStartGame is sent when the game is started by the owner, to all the players
-	// server -> client
 	EventStartGame = "start_game"
-	// EventNewProblem is sent when a new problem is generated
-	// server -> client
+	// EventNewProblem is sent when a new problem is generated for the user
 	EventNewProblem = "new_problem"
+	// EventNewScoreUpdate is sent when a user answers a problem correctly
+	EventNewScoreUpdate = "new_score_update"
+	// EventWrongAnswer is sent when a user answers a problem incorrectly
+	EventWrongAnswer = "wrong_answer"
+	// EventEndGame is sent when the game is over
+	EventEndGame = "end_game"
+)
+
+// client -> server events
+const (
+	// EventStartGameOwner is sent when the game is started by the owner, by the owner
+	EventStartGameOwner = "start_game_owner"
 	// EventRequestProblem is sent when a user requests a new problem
-	// client -> server
 	EventRequestProblem = "request_problem"
 	// EventGiveAnswer is sent when a user answers a problem
-	// client -> server
 	EventGiveAnswer = "give_answer"
-	// EventNewScoreUpdate is sent when a user answers a problem
-	// server -> client
-	EventNewScoreUpdate = "new_score_update"
-	// EventEndGame is sent when the game is over
-	// server -> client
-	EventEndGame = "end_game"
 )
 
 const TIME_TO_START_GAME = 10 * time.Second
@@ -182,7 +180,7 @@ func GiveAnswerHandler(event Event, c *Client) error {
 	user := c.lobby.userMapping[c.name]
 	problem := (*GetProblems()).Problems[user.questionNumber]
 	if !problem.CheckAnswer(chatevent.Answer) {
-		c.egress <- Event{"wrong_answer", nil}
+		c.egress <- Event{EventWrongAnswer, nil}
 		return fmt.Errorf("bad payload in request")
 	}
 
