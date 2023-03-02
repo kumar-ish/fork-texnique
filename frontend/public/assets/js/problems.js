@@ -902,24 +902,24 @@ let problems = [
 ];
 
 
-PROBLEMS_FILE = "problems.json"
+// PROBLEMS_FILE = "problems.json"
 
-function write_to_json() {
-	json = JSON.stringify(problems)
-	fs.writeFile(PROBLEMS_FILE, json, function(err) {
-		if (err) throw err;
-		console.log('complete');
-	});
-}
+// function write_to_json() {
+// 	json = JSON.stringify(problems)
+// 	fs.writeFile(PROBLEMS_FILE, json, function(err) {
+// 		if (err) throw err;
+// 		console.log('complete');
+// 	});
+// }
 
-function read_from_json() {
-	fs.readFile(PROBLEMS_FILE, 'utf8', function readFileCallback(err, data){
-		if (err){
-			console.log(err);
-		} else {
-		obj = JSON.parse(data);
-		console.log(obj["problems"][0]["latex"])
-	}});
-}
+// function read_from_json() {
+// 	fs.readFile(PROBLEMS_FILE, 'utf8', function readFileCallback(err, data){
+// 		if (err){
+// 			console.log(err);
+// 		} else {
+// 		obj = JSON.parse(data);
+// 		console.log(obj["problems"][0]["latex"])
+// 	}});
+// }
 
-read_from_json()
+// read_from_json()
