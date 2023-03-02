@@ -140,8 +140,7 @@ function endGame() {
     }
 }
 
-
-function startGame(useTimer) {
+function startGameSetup() {
     problemNumber = 0;
     currentScore = 0;
     numCorrect = 0;
@@ -159,6 +158,16 @@ function startGame(useTimer) {
     displayLaTeXInBody();
 
     $("#score").text(0);
+}
+
+function startMultiplayerGame() {
+    sendEvent("start_game_owner", {});
+
+    return false;
+}
+
+function startGame(useTimer) {
+    startGameSetup();
 
     if (useTimer) {
         displayTime(TIMEOUT_SECONDS);
@@ -353,30 +362,6 @@ function sendEvent(eventName, payload) {
     conn.send(JSON.stringify(event));
 }
 
-function startMultiplayerGame() {
-    sendEvent("start_game_owner", {});
-
-    problemNumber = 0;
-    currentScore = 0;
-    numCorrect = 0;
-    oldVal = "";
-    problemsOrder = [...Array(problems.length).keys()];
-    shuffleArray(problemsOrder);
-    skippedProblems = [];
-
-    $("#intro-window").hide();
-    $("#ending-window").hide();
-    $("#game-window").show();
-    $("#skipped-problems").html("");
-    $("#skipped-problems").hide();
-
-    displayLaTeXInBody();
-
-    $("#score").text(0);
-
-    return false;
-}
-
 function requestNewProblem() {
     sendEvent("request_problem", {});
 }
@@ -427,6 +412,7 @@ function routeEvent(event) {
         case "start_game":
             const startGameEvent = Object.assign(new StartGameEvent, event.payload);
             duration = parseInt(startGameEvent.duration)
+            startGameSetup();
             startTimer(duration, function () {})
             break;
         case "new_problem":
