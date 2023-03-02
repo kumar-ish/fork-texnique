@@ -6,12 +6,6 @@ A (new) $\LaTeX$ speed-typesetting game. Test yourself in single-player mode, or
 
 To run this project, you need to have `go` installed, at the version specified in the `go.mod` file.
 
-You also need to generate a self-signed certificate -- a utility file to generate this has been provided at `certgen.bash`. You can run this using the following command:
-
-```
-bash certgen.bash
-```
-
 Afterwards, you can run the project using:
 
 ```

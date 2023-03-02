@@ -19,7 +19,7 @@ func main() {
 	setupAPI(ctx)
 
 	// Serve on port :8080
-	err := http.ListenAndServeTLS(":8080", "server.crt", "server.key", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
