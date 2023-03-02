@@ -97,7 +97,7 @@ var (
 	problems *Problems
 )
 
-// Singleton to get the problems
+// Singleton to get the problems, s.t. problems are only loaded once (upon program instantiation)
 func GetProblems() *Problems {
 	if problems == nil {
 		jsonFile, err := os.Open("problems.json")
@@ -118,20 +118,14 @@ func GetProblems() *Problems {
 }
 
 func endGame(c *Client, message string) {
-	// Prepare an Outgoing Message to others
-	var broadMessage EndGameEvent
-	broadMessage.Message = message
+	var broadMessage = EndGameEvent{message}
 
 	data, err := json.Marshal(broadMessage)
 	if err != nil {
 		fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	// Place payload into an Event
-	var outgoingEvent Event
-	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventEndGame
-	// Broadcast to all other Clients
+	var outgoingEvent = Event{EventEndGame, data}
 	for client := range c.lobby.clients {
 		client.egress <- outgoingEvent
 	}
@@ -143,11 +137,7 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("only the owner can start the game")
 	}
 
-	// Prepare an Outgoing Message to others
-	var broadMessage StartGameEvent
-
-	broadMessage.StartTimestamp = time.Now().Add(TIME_TO_START_GAME)
-	broadMessage.Duration = c.lobby.timeLimit
+	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
 
 	if !DEBUG {
 		time.Sleep(TIME_TO_START_GAME)
@@ -158,30 +148,21 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	// Place payload into an Event
-	var outgoingEvent Event
-	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventStartGame
-	// Broadcast to all other Clients
+	// Send start game message
+	var outgoingEvent = Event{EventStartGame, data}
 	for client := range c.lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
-	// Prepare an Outgoing Message to others
-	var newProblemBroadcast NewProblemEvent
-
-	problems := GetProblems()
-	newProblemBroadcast.Problem = (*problems).Problems[0]
+	// Send the first problem
+	var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[0]}
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	// Place payload into an Event
-	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventNewProblem
-	// Broadcast to all other Clients
+	outgoingEvent = Event{EventNewProblem, data}
 	for client := range c.lobby.clients {
 		client.egress <- outgoingEvent
 	}
@@ -194,7 +175,6 @@ func StartGameHandler(event Event, c *Client) error {
 
 // EventGiveAnswer is sent when a user answers a problem
 func GiveAnswerHandler(event Event, c *Client) error {
-	// Marshal Payload into wanted format
 	var chatevent AnswerEvent
 	if err := json.Unmarshal(event.Payload, &chatevent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -213,20 +193,14 @@ func GiveAnswerHandler(event Event, c *Client) error {
 	}
 	user = c.lobby.userMapping[c.name]
 
-	// Prepare an Outgoing Message to others
-	var broadMessage NewScoreUpdateEvent
-
-	broadMessage.Name = c.name
-	broadMessage.Score = user.score
+	var broadMessage = NewScoreUpdateEvent{c.name, user.score}
 
 	data, err := json.Marshal(broadMessage)
 	if err != nil {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	var clientsScoreUpdateEvent Event
-	clientsScoreUpdateEvent.Payload = data
-	clientsScoreUpdateEvent.Type = EventNewScoreUpdate
+	var clientsScoreUpdateEvent = Event{EventNewScoreUpdate, data}
 
 	for client := range c.lobby.clients {
 		client.egress <- clientsScoreUpdateEvent
@@ -236,19 +210,14 @@ func GiveAnswerHandler(event Event, c *Client) error {
 		endGame(c, "Ran out of problems!")
 	} else {
 		// Send client new problem
-		var newProblemBroadcast NewProblemEvent
-
-		newProblemBroadcast.Problem = (*GetProblems()).Problems[user.questionNumber]
+		var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[user.questionNumber]}
 
 		data, err := json.Marshal(newProblemBroadcast)
 		if err != nil {
 			return fmt.Errorf("failed to marshal broadcast message: %v", err)
 		}
-		var outgoingEvent Event
-		// Place payload into an Event
-		outgoingEvent.Payload = data
-		outgoingEvent.Type = EventNewProblem
-		// Broadcast to our client
+
+		var outgoingEvent = Event{EventNewProblem, data}
 		c.egress <- outgoingEvent
 	}
 
@@ -256,9 +225,6 @@ func GiveAnswerHandler(event Event, c *Client) error {
 }
 
 func RequestProblemHandler(event Event, c *Client) error {
-	// Prepare an Outgoing Message to others
-	var newProblemBroadcast NewProblemEvent
-
 	user := c.lobby.userMapping[c.name]
 	user = User{password: user.password, questionNumber: user.questionNumber + 1, score: user.score}
 
@@ -269,18 +235,14 @@ func RequestProblemHandler(event Event, c *Client) error {
 		return nil
 	}
 
-	newProblemBroadcast.Problem = (*GetProblems()).Problems[c.lobby.userMapping[c.name].questionNumber]
+	var newProblemBroadcast = NewProblemEvent{(*GetProblems()).Problems[user.questionNumber]}
 
 	data, err := json.Marshal(newProblemBroadcast)
 	if err != nil {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	// Place payload into an Event
-	var outgoingEvent Event
-	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventNewProblem
-	// Broadcast to our client
+	var outgoingEvent = Event{EventNewProblem, data}
 	c.egress <- outgoingEvent
 
 	return nil
