@@ -9,6 +9,7 @@ import (
 func main() {
 	// Initialize problems -- done at the start so there's not excessive latency on the first game
 	GetProblems()
+	println("Starting server...")
 
 	// Create a root ctx and a CancelFunc which can be used to cancel retentionMap goroutine
 	rootCtx := context.Background()
