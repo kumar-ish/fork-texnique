@@ -65,7 +65,7 @@ type Problems struct {
 }
 
 type User struct {
-	password       *string
+	password       string
 	questionNumber int
 	score          int
 }
@@ -182,13 +182,11 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hashed password from the request
-	var hashedReqPassword *string
-	buff, err := HashPassword(req.Password)
+	hashedReqPassword, err := HashPassword(req.Password)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	hashedReqPassword = &buff
 
 	user, userExists := lobby.userMapping[req.Username]
 	if !userExists {
@@ -196,7 +194,7 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// authenticate user / verify access token
-	if CheckPasswordHash(req.Password, *user.password) {
+	if CheckPasswordHash(req.Password, user.password) {
 		// If authentication passes, set the owner of the lobby
 		if lobby.owner == nil {
 			lobby.owner = &req.Username
