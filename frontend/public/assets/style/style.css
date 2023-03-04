@@ -99,17 +99,17 @@ main {
 	display: inline-block;
 }
 
-#skip-button, #end-game-button {
-	margin-top: -10px;
+#skip-button {
+	margin-bottom: 5px;
 }
 
 #top-row {
+	display: flex;
+	justify-content: space-between; /* Align items at opposite ends */
+	align-items: center; /* Align items vertically in the center */
 }
 
 #score-wrapper {
-	display: inline-block;
-  	width: 80px;
-  	margin-left: calc(50% - 315px);
 }
 
 #timer-wrapper {
