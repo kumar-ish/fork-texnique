@@ -183,16 +183,12 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Hashed password from the request
 	var hashedReqPassword *string
-	if req.Password == "" {
-		hashedReqPassword = nil
-	} else {
-		buff, err := HashPassword(req.Password)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		hashedReqPassword = &buff
+	buff, err := HashPassword(req.Password)
+	if err != nil {
+		log.Println(err)
+		return
 	}
+	hashedReqPassword = &buff
 
 	user, userExists := lobby.userMapping[req.Username]
 	if !userExists {
@@ -200,8 +196,7 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// authenticate user / verify access token
-	if (user.password == nil && hashedReqPassword == nil) ||
-		CheckPasswordHash(req.Password, *user.password) {
+	if CheckPasswordHash(req.Password, *user.password) {
 		// If authentication passes, set the owner of the lobby
 		if lobby.owner == nil {
 			lobby.owner = &req.Username
