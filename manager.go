@@ -191,6 +191,8 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 	user, userExists := lobby.userMapping[req.Username]
 	if !userExists {
 		user.password = hashedReqPassword
+		// Initialise user
+		lobby.userMapping[req.Username] = user
 	}
 
 	// authenticate user / verify access token
