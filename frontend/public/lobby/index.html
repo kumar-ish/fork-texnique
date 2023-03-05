@@ -16,6 +16,7 @@
     <meta name="description" content="A LaTeX Typesetting Game">
     <link rel="icon" type="image/png" href="../assets/image/fav.png">
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- css -->
     <link rel="stylesheet" href="../assets/lib/katex/katex.min.css">
@@ -121,11 +122,17 @@
 
         <div id="game-window">
             <div id="top-row">
-              <span id="left-buttons" style="width:340px">
-                <button id="skip-button" class="latex-button">Skip This Problem</button>
+              <span id="left-buttons" style="width:350px">
+                  <button id="skip-button" class="latex-button">Skip This Problem</button>
+                  <audio src="/assets/audio/danielchilling.mp3" id="background-music" loop="loop"></audio>
+                  <button id="toggle-music">
+                    <span class="fa fa-fw fa-play-circle-o"></span>
+                  </button>
               </span>
-              <span id="score-wrapper" > <b> Score: &nbsp; </b> <span id="score"></span></span>
-              <span id="timer-wrapper" style="width:340px"> <b> Time: &nbsp;  </b> <span id="timer"></span></span>
+              <span id="score-wrapper">
+                <b> Score: &nbsp; </b> <span id="score"></span>
+              </span>
+              <span id="timer-wrapper" style="width:350px"> <b> Time: &nbsp;  </b> <span id="timer"></span></span>
             </div>
 
             <br><br>
