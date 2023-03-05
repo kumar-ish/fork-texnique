@@ -546,6 +546,20 @@ function createLobby() {
 // Start by showing the intro.
 $(document).ready(function() {
     // Handlers
+    $("#toggle-music").on('click', function() {
+        const childSpan = $(this).children('span');
+        const sound = document.getElementById("background-music");
+        if (childSpan.hasClass('fa-play-circle-o')) {
+            childSpan.removeClass('fa-play-circle-o');
+            childSpan.addClass('fa-pause-circle-o');
+            sound.play();
+        } else {
+            childSpan.removeClass('fa-pause-circle-o');
+            childSpan.addClass('fa-play-circle-o');
+            sound.pause();
+        }
+    });
+
     $("#start-button-timed").click(function() {
         startGame(true);
     });
