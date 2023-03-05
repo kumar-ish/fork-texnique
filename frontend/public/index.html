@@ -105,19 +105,17 @@
 
         <div id="game-window">
             <div id="top-row">
-                <span id="left-buttons" style="width:340px">
+                <span id="left-buttons" style="width:350px">
                     <button id="skip-button" class="latex-button">Skip This Problem</button>
+                    <audio src="/assets/audio/danielchilling.mp3" id="background-music" loop="loop"></audio>
+                    <button id="toggle-music">
+                      <span class="fa fa-fw fa-play-circle-o"></span>
+                    </button>
                 </span>
                 <span id="score-wrapper">
-                  <div class="bg-music">
-                    <audio src="assets/audio/danielchilling.mp3" id="background-music" loop="loop"></audio>
-                    <button id="toggle-music" class="latex-button">
-                      <span class="fa fa-play-circle-o" style="font-size:24px"></span>
-                    </button>
-                  </div>
                   <b> Score: &nbsp; </b> <span id="score"></span>
                 </span>
-                <span id="timer-wrapper" style="width:340px"> <b> Time: &nbsp;  </b> <span id="timer"></span></span>
+                <span id="timer-wrapper" style="width:350px"> <b> Time: &nbsp;  </b> <span id="timer"></span></span>
             </div>
 
             <br><br>

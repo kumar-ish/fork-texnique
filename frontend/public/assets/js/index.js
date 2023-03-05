@@ -631,7 +631,7 @@ $(document).ready(function() {
             convertLobbyToLogin();
         }
     } else {
-        $("#left-buttons").append("<button id='end-game-button' class='latex-button'>End Game</button>");
+        $("#skip-button").after("<button id='end-game-button' class='latex-button'>End Game</button>");
 
         $("#end-game-button").click(function() {
             endGame();

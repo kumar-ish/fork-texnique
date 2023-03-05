@@ -96,11 +96,17 @@ main {
 
 #left-buttons {
 	float: left;
-	display: inline-block;
+	display: flex;
 }
 
 #skip-button {
-	margin-bottom: 5px;
+}
+
+#toggle-music {
+	background: transparent;
+	font-size: 34px;
+	border: none;
+	padding: 0;
 }
 
 #top-row {
