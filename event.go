@@ -135,7 +135,11 @@ func StartGameHandler(event Event, c *Client) error {
 	if *c.lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
 	}
+	if c.lobby.started {
+		return fmt.Errorf("game has already been started by owner")
+	}
 
+	c.lobby.started = true
 	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
 
 	if !DEBUG {

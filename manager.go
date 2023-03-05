@@ -74,7 +74,9 @@ type Lobby struct {
 	name      string
 	timeLimit int
 	startTime *int
-	owner     *string
+	// could just check for existence of startTime, but I'm not sure why it's an int pointer instead of a time.Time thing.
+	started bool
+	owner   *string
 
 	// username to (hashed) password
 	userMapping map[string]User
@@ -120,6 +122,7 @@ func NewLobby(ctx context.Context, name string) *Lobby {
 		name:        name,
 		owner:       nil,
 		startTime:   nil,
+		started:     false,
 		clients:     make(ClientList),
 		otps:        NewRetentionMap(ctx, 5*time.Second),
 	}
