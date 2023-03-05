@@ -546,17 +546,16 @@ function createLobby() {
 // Start by showing the intro.
 $(document).ready(function() {
     // Handlers
-    $("#toggle-music").on('click', function() {
-        const childSpan = $(this).children('span');
-        const sound = document.getElementById("background-music");
-        if (childSpan.hasClass('fa-play-circle-o')) {
-            childSpan.removeClass('fa-play-circle-o');
-            childSpan.addClass('fa-pause-circle-o');
-            sound.play();
+    const svg = $("#toggle-music");
+    svg.on('click', function() {
+        const sound = $("#background-music");
+        // Change SVG's src attribute to be pause.svg using jquery
+        if (svg.attr("src").includes("pause")) {
+            svg.attr("src", "/assets/image/play.svg");
+            sound[0].pause();
         } else {
-            childSpan.removeClass('fa-pause-circle-o');
-            childSpan.addClass('fa-play-circle-o');
-            sound.pause();
+            svg.attr("src", "/assets/image/pause.svg");
+            sound[0].play();
         }
     });
 

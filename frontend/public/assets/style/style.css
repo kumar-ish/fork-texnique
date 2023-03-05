@@ -103,10 +103,8 @@ main {
 }
 
 #toggle-music {
-	background: transparent;
-	font-size: 34px;
-	border: none;
-	padding: 0;
+	width: 35px;
+	cursor: pointer;
 }
 
 #top-row {
