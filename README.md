@@ -1,4 +1,4 @@
-# Fork-TeXnique
+# Fork- $\TeX$​nique
 
 A (new) $\LaTeX$ speed-typesetting game. Test yourself in single-player mode, or in multi-player mode in a customizeable lobby with friends. See [credits](#credits)!
 
