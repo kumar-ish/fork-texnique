@@ -70,11 +70,20 @@ type User struct {
 	score          int
 }
 
+type GameState int64
+
+const (
+	WaitingForPlayers GameState = iota
+	InPlay            GameState = iota
+	Finished          GameState = iota
+)
+
 type Lobby struct {
 	name      string
 	timeLimit int
 	startTime *int
 	owner     *string
+	gameState GameState
 
 	// username to (hashed) password
 	userMapping map[string]User
@@ -119,6 +128,7 @@ func NewLobby(ctx context.Context, name string) *Lobby {
 		timeLimit:   600,
 		name:        name,
 		owner:       nil,
+		gameState:   WaitingForPlayers,
 		startTime:   nil,
 		clients:     make(ClientList),
 		otps:        NewRetentionMap(ctx, 5*time.Second),
