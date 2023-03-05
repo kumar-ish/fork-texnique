@@ -23,3 +23,5 @@ go.work
 # For those that don't have global gitignores
 **/.DS_Store
 .vscode/
+
+node_modules

@@ -33,7 +33,7 @@ func setupAPI(ctx context.Context) {
 	manager := NewManager(ctx)
 
 	// Basic routes (frontend + creation of lobby)
-	http.Handle("/", http.FileServer(http.Dir("./frontend/public")))
+	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.HandleFunc("/createLobby", manager.createLobbyHandler)
 
 	// Routes used for lobby

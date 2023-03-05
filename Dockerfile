@@ -19,7 +19,7 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /
 
 COPY --from=build /forktexnique /forktexnique
-COPY frontend ./frontend
+COPY public ./public
 COPY problems.json ./
 
 EXPOSE 8080
