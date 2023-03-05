@@ -39,8 +39,4 @@ func setupAPI(ctx context.Context) {
 	// Routes used for lobby
 	http.HandleFunc("/login", manager.loginHandler)
 	http.HandleFunc("/ws", manager.serveWS)
-
-	// After owner has been selected
-	http.HandleFunc("/getOwner", manager.getOwnerHandler)
-	http.HandleFunc("/editLobby", manager.editLobbyHandler)
 }
