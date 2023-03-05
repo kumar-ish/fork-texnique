@@ -491,7 +491,7 @@ function login() {
     }).then((data) => {
         // Now we have a OTP, send a Request to Connect to WebSocket
         $("#login-form").hide();
-        $("#start-multiplayer-button").show();
+        $("#lobby-screen").show();
         connectWebsocket(data.otp, data.lobby);
     }).catch((e) => { alert(e) });
     return false;
@@ -611,6 +611,15 @@ $(document).ready(function() {
         $("#shadow-checkbox").prop("checked", !$("#shadow-checkbox").prop("checked"));
         $("#shadow-target").toggle();
       }
+    });
+
+    $("#duration").on('input', function() {
+        let durationValue = document.getElementById("duration").value;
+        if (durationValue == 1) {
+            $("#durationTime").text("Duration (1 minute)");
+        } else {
+            $("#durationTime").text("Duration (" + durationValue + " minutes)");
+        };
     });
 
     if (isMultiplayer) {

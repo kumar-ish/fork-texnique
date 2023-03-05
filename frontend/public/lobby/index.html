@@ -76,8 +76,72 @@
 
               <p id="connection-header"></p>
             </div>
-            <button id="start-multiplayer-button" class="latex-button" style="display:none">Start Game</button>
-            <p id="copy-lobby"></p>
+            <div id="lobby-screen" style="display:none;">
+              <div id="lobby-user-manager">
+                <div id="lobby-user-list">
+                  <p>People: 3/100</p>
+                  <div class="lobby-people">
+                    <button class="latex-button lobby-person">Liam</button>
+                    <button class="latex-button lobby-person">Sean</button>
+                    <button class="latex-button lobby-person">Steve</button>
+                    <button class="latex-button lobby-person">Chris</button>
+                    <button class="latex-button lobby-person">Jye</button>
+                    <button class="latex-button lobby-person">Caleb</button>
+                    <button class="latex-button lobby-person">Ali</button>
+                  </div>
+                  </ul>
+                </div>
+                <div id="lobby-invitelink">
+                  <p id="copy-lobby"></p>
+                </div>
+            </div>
+              <div id="lobby-manager">
+                <div id="lobby-settings">
+                  <div class="setting">
+                    <div class="setting-key">
+                      <label id="durationTime" for="duration">Duration (10 minutes)</label>
+                    </div>
+                    <div class="setting-value">
+                      <input id="duration" style="vertical-align:text-top;width:100%;" name="duration" type="range" min="1" max="60" value="10" >
+                    </div>
+                  </div>
+
+                  <div class="setting">
+                    <div class="setting-key">
+                      <label for="random-order">Random Order:</label>
+                    </div>
+                    <div class="setting-value">
+                      <input type="checkbox" id="random-order">
+                    </div>
+                  </div>
+
+                  <div class="setting">
+                    <div class="setting-key">
+                      <label for="custom-problems">Custom Problems:</label>
+                    </div>
+                    <div class="setting-value">
+                      <input type="file" id="custom-problems" style="width:172px;">
+                    </div>
+                  </div>
+
+                  <!--
+                  <div class="setting">
+                    <div class="setting-key">
+                      
+                    </div>
+                    <div class="setting-value">
+
+                    </div>
+                  </div>
+                    
+                  -->
+
+                </div>
+                <div id="lobby-start">
+                  <button id="start-multiplayer-button" class="latex-button">Start Game</button>
+                </div>
+              </div>
+            </div>
 
             <br><br><br>
 

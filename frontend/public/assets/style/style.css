@@ -275,3 +275,67 @@ label {
 #skipped-problems {
 	display: none;
 }
+
+#lobby-screen {
+	border: 2px solid black;
+	height: 400px;
+	display: flex;
+}
+
+#lobby-user-manager {
+	flex-grow: 1;
+}
+
+#lobby-user-list::-webkit-scrollbar {
+	display: none;
+}
+
+#lobby-user-list {
+	overflow-y: scroll;
+	height: 400px;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+#lobby-people {
+	display: flex;
+	flex-basis: 0;
+}
+
+.lobby-person {
+	margin: 5px;
+}
+
+#lobby-manager {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	border-left: 1px solid black;
+}
+
+#lobby-settings {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+
+#start-multiplayer-button {
+	margin: 8px;
+}
+
+.setting {
+	display: flex;
+	flex-direction: row;
+	flex: 0 0 auto;
+}
+
+.setting-key {
+	flex: 1 1 0;
+	display: flex;
+	align-items: center;
+}
+
+.setting-value {
+	flex: 0 0 45%;
+}
