@@ -1,0 +1,11 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "go run .",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.31.2"
+  }
+}
