@@ -171,7 +171,13 @@ func StartGameHandler(event Event, c *Client) error {
 	}
 
 	// End the game after the duration of the game
-	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() { endGame(c, "Game Over!") })
+	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() {
+		for client := range c.lobby.clients {
+			endGame(client, "Game over!")
+		}
+
+		c.lobby.endGame()
+	})
 
 	return nil
 }
