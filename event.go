@@ -188,6 +188,10 @@ func StartGameHandler(event Event, c *Client) error {
 		c.lobby.endGame()
 
 		endGameLobby(c.lobby, "Game over!")
+
+		// We can delete the lobby from the map now and have that be GC'd later
+		// TODO: worry about other deletions?
+		delete(c.manager.lobbies, c.lobby.id)
 	})
 
 	return nil

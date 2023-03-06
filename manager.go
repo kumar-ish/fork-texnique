@@ -79,6 +79,7 @@ const (
 )
 
 type Lobby struct {
+	id        string
 	name      string
 	timeLimit int
 	startTime *int
@@ -121,11 +122,12 @@ func NewManager(ctx context.Context) *Manager {
 	return m
 }
 
-func NewLobby(ctx context.Context, name string) *Lobby {
+func NewLobby(ctx context.Context, name string, id string) *Lobby {
 	l := &Lobby{
 		userMapping: make(map[string]User),
 		otpMapping:  make(map[string]string),
 		timeLimit:   600,
+		id:          id,
 		name:        name,
 		owner:       nil,
 		gameState:   WaitingForPlayers,
@@ -312,7 +314,7 @@ func (m *Manager) createLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uuid.New().String()
-	m.lobbies[id] = NewLobby(m.ctx, req.Name)
+	m.lobbies[id] = NewLobby(m.ctx, req.Name, id)
 
 	// format to return otp in to the frontend
 	type response struct {
