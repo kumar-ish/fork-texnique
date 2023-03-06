@@ -124,7 +124,20 @@ func endGame(c *Client, message string) error {
 	}
 
 	var outgoingEvent = Event{EventEndGame, data}
-	for client := range c.lobby.clients {
+	c.egress <- outgoingEvent
+	return nil
+}
+
+func endGameLobby(l *Lobby, message string) error {
+	var broadMessage = EndGameEvent{message}
+
+	data, err := json.Marshal(broadMessage)
+	if err != nil {
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
+	}
+
+	var outgoingEvent = Event{EventEndGame, data}
+	for client := range l.clients {
 		client.egress <- outgoingEvent
 	}
 	return nil
@@ -172,11 +185,9 @@ func StartGameHandler(event Event, c *Client) error {
 
 	// End the game after the duration of the game
 	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() {
-		for client := range c.lobby.clients {
-			endGame(client, "Game over!")
-		}
-
 		c.lobby.endGame()
+
+		endGameLobby(c.lobby, "Game over!")
 	})
 
 	return nil
