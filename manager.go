@@ -153,6 +153,17 @@ func NewLobby(ctx context.Context, name string) *Lobby {
 	return l
 }
 
+func (lobby *Lobby) startGame() {
+	if lobby.gameState != WaitingForPlayers {
+		panic("Game is already in progress")
+	}
+	lobby.gameState = InPlay
+}
+
+func (lobby *Lobby) inPlay() bool {
+	return lobby.gameState == InPlay
+}
+
 // routeEvent is used to make sure the correct event goes into the correct handler
 func (m *Manager) routeEvent(event Event, c *Client) error {
 	// Check if Handler is present in Map

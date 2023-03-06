@@ -134,6 +134,8 @@ func endGame(c *Client, message string) error {
 func StartGameHandler(event Event, c *Client) error {
 	if *c.lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
+	} else if c.lobby.inPlay() {
+		return fmt.Errorf("game is already in progress")
 	}
 
 	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
@@ -146,6 +148,8 @@ func StartGameHandler(event Event, c *Client) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
+
+	c.lobby.startGame()
 
 	// Send start game message
 	var outgoingEvent = Event{EventStartGame, data}
@@ -174,6 +178,9 @@ func StartGameHandler(event Event, c *Client) error {
 
 // EventGiveAnswer is sent when a user answers a problem
 func GiveAnswerHandler(event Event, c *Client) error {
+	if !c.lobby.inPlay() {
+		return fmt.Errorf("game is not in progress")
+	}
 	var chatevent AnswerEvent
 	if err := json.Unmarshal(event.Payload, &chatevent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -224,6 +231,9 @@ func GiveAnswerHandler(event Event, c *Client) error {
 }
 
 func RequestProblemHandler(event Event, c *Client) error {
+	if !c.lobby.inPlay() {
+		return fmt.Errorf("game is not in progress")
+	}
 	user := c.lobby.userMapping[c.name]
 	user = User{password: user.password, questionNumber: user.questionNumber + 1, score: user.score}
 
