@@ -14,7 +14,21 @@ Afterwards, you can run the project using:
 go run .
 ```
 
-### Running e2e tests
+### Using Docker
+
+If you want to use Docker to run this project, you can build an image using:
+
+```bash
+docker build -t forktexnique .
+```
+
+Once you've built it, you can run it using
+
+```bash
+docker run -p 8080:8080 forktexnique
+```
+
+### Running E2E frontend tests
 
 To run the tests, you can run:
 
@@ -28,20 +42,6 @@ Afterwards, you can run the tests using:
 
 ```bash
 pnpm test
-```
-
-### Using Docker
-
-If you want to use Docker to run this project, you can build an image using:
-
-```bash
-docker build -t forktexnique .
-```
-
-Once you've built it, you can run it using
-
-```bash
-docker run -p 8080:8080 forktexnique
 ```
 
 ## Credits

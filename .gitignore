@@ -25,3 +25,5 @@ go.work
 .vscode/
 
 node_modules
+
+playwright-report/*
