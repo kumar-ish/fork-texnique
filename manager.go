@@ -160,6 +160,13 @@ func (lobby *Lobby) startGame() {
 	lobby.gameState = InPlay
 }
 
+func (lobby *Lobby) endGame() {
+	if lobby.gameState != InPlay {
+		panic("Game isn't in progress")
+	}
+	lobby.gameState = Finished
+}
+
 func (lobby *Lobby) inPlay() bool {
 	return lobby.gameState == InPlay
 }
