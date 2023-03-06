@@ -129,7 +129,20 @@ func endGame(c *Client, message string) error {
 	}
 
 	var outgoingEvent = Event{EventEndGame, data}
-	for client := range c.lobby.clients {
+	c.egress <- outgoingEvent
+	return nil
+}
+
+func endGameLobby(l *Lobby, message string) error {
+	var broadMessage = EndGameEvent{message}
+
+	data, err := json.Marshal(broadMessage)
+	if err != nil {
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
+	}
+
+	var outgoingEvent = Event{EventEndGame, data}
+	for client := range l.clients {
 		client.egress <- outgoingEvent
 	}
 	return nil
@@ -143,6 +156,8 @@ func StartGameHandler(event Event, c *Client) error {
 	// }
 	if *c.lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
+	} else if c.lobby.inPlay() {
+		return fmt.Errorf("game is already in progress")
 	}
 
 	// c.lobby.timeLimit = reqevent.Duration
@@ -157,15 +172,16 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
+	c.lobby.startGame()
+
 	// Send start game message
 	var outgoingEvent = Event{EventStartGame, data}
 	for client := range c.lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
-	// Send the first problem
-	user := c.lobby.userMapping[c.name]
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[user.questionNumber]]}
+	// Send the first problem (all users get the same problem & their question number starts off at 0)
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[0]]}
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
@@ -178,13 +194,24 @@ func StartGameHandler(event Event, c *Client) error {
 	}
 
 	// End the game after the duration of the game
-	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() { endGame(c, "Game Over!") })
+	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() {
+		c.lobby.endGame()
+
+		endGameLobby(c.lobby, "Game over!")
+
+		// We can delete the lobby from the map now and have that be GC'd later
+		// TODO: worry about other deletions?
+		delete(c.manager.lobbies, c.lobby.id)
+	})
 
 	return nil
 }
 
 // EventGiveAnswer is sent when a user answers a problem
 func GiveAnswerHandler(event Event, c *Client) error {
+	if !c.lobby.inPlay() {
+		return fmt.Errorf("game is not in progress")
+	}
 	var chatevent AnswerEvent
 	if err := json.Unmarshal(event.Payload, &chatevent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -235,6 +262,9 @@ func GiveAnswerHandler(event Event, c *Client) error {
 }
 
 func RequestProblemHandler(event Event, c *Client) error {
+	if !c.lobby.inPlay() {
+		return fmt.Errorf("game is not in progress")
+	}
 	user := c.lobby.userMapping[c.name]
 	user = User{password: user.password, questionNumber: user.questionNumber + 1, score: user.score}
 
