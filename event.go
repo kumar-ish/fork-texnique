@@ -153,9 +153,8 @@ func StartGameHandler(event Event, c *Client) error {
 		client.egress <- outgoingEvent
 	}
 
-	// Send the first problem
-	user := c.lobby.userMapping[c.name]
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[user.questionNumber]]}
+	// Send the first problem (all users get the same problem & their question number starts off at 0)
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[0]]}
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
