@@ -403,7 +403,6 @@ function updateScore(scoreUpdateEvent) {
  * based on the type field
  * */
 function routeEvent(event) {
-    console.log("received event: " + event.type);
     if (event.type === undefined) {
         alert("no 'type' field in event");
     }
@@ -447,7 +446,6 @@ function routeEvent(event) {
  * @param {string} username 
  */
 function addNewUser(username) {
-    console.log("adding: " + username);
     const newButton = document.createElement("button");
     newButton.textContent = username;
     newButton.classList.add("latex-button");
