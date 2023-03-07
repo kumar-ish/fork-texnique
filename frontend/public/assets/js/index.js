@@ -588,10 +588,6 @@ $(document).ready(function() {
       toggleShowSkipped();
     })
 
-    $("#end-game-button").click(function() {
-        endGame();
-    });
-
     $("#user-input").on("change keyup paste", async function() {
         const valid = await validateProblem()
         console.log(valid)
@@ -629,6 +625,12 @@ $(document).ready(function() {
         if (urlParams.get('l') != null) {
             convertLobbyToLogin();
         }
+    } else {
+        $("#left-buttons").append("<button id='end-game-button' class='latex-button'>End Game</button>");
+
+        $("#end-game-button").click(function() {
+            endGame();
+        });
     }
     showIntro();
 });
