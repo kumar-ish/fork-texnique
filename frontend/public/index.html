@@ -105,20 +105,20 @@
 
         <div id="game-window">
             <div id="top-row">
-                <span id="left-buttons" style="width:350px">
+                <span id="left-buttons" style="width:380px">
                     <button id="skip-button" class="latex-button">Skip This Problem</button>
                     <audio src="/assets/audio/danielchilling.mp3" id="background-music" loop="loop"></audio>
-                    <span class="latex-button" style="display:flex;padding:1px">
+                    <span class="latex-button" id="toggle-music-wrapper">
                       <img src="/assets/image/play.svg" id="toggle-music">
                     </span>
-                    <span class="latex-button" style="display:flex;padding:10px" id="shuffle-music">
-                      <img src="/assets/image/shuffle.svg">
+                    <span class="latex-button" id="shuffle-music-wrapper">
+                      <img src="/assets/image/shuffle.svg" id="shuffle-music">
                     </span>
                 </span>
-                <span id="score-wrapper">
-                  <b> Score: &nbsp; </b> <span id="score"></span>
-                </span>
-                <span id="timer-wrapper" style="width:350px"> <b> Time: &nbsp;  </b> <span id="timer"></span></span>
+                <div class="important-numbers">
+                  <div><b> Score: &nbsp; </b></div> <div id="score"></div>
+                  <div id="timer-wrapper"> <b> Time: &nbsp; </b></div> <div id="timer"></div>
+                </div>
             </div>
 
             <br><br>
