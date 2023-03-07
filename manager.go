@@ -70,11 +70,21 @@ type User struct {
 	score          int
 }
 
+type GameState int64
+
+const (
+	WaitingForPlayers GameState = iota
+	InPlay            GameState = iota
+	Finished          GameState = iota
+)
+
 type Lobby struct {
+	id        string
 	name      string
 	timeLimit int
 	startTime *int
 	owner     *string
+	gameState GameState
 
 	// username to (hashed) password
 	userMapping map[string]User
@@ -112,13 +122,15 @@ func NewManager(ctx context.Context) *Manager {
 	return m
 }
 
-func NewLobby(ctx context.Context, name string) *Lobby {
+func NewLobby(ctx context.Context, name string, id string) *Lobby {
 	l := &Lobby{
 		userMapping: make(map[string]User),
 		otpMapping:  make(map[string]string),
 		timeLimit:   600,
+		id:          id,
 		name:        name,
 		owner:       nil,
+		gameState:   WaitingForPlayers,
 		startTime:   nil,
 		clients:     make(ClientList),
 		otps:        NewRetentionMap(ctx, 5*time.Second),
@@ -141,6 +153,24 @@ func NewLobby(ctx context.Context, name string) *Lobby {
 	}
 
 	return l
+}
+
+func (lobby *Lobby) startGame() {
+	if lobby.gameState != WaitingForPlayers {
+		panic("Game is already in progress")
+	}
+	lobby.gameState = InPlay
+}
+
+func (lobby *Lobby) endGame() {
+	if lobby.gameState != InPlay {
+		panic("Game isn't in progress")
+	}
+	lobby.gameState = Finished
+}
+
+func (lobby *Lobby) inPlay() bool {
+	return lobby.gameState == InPlay
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -302,7 +332,7 @@ func (m *Manager) createLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uuid.New().String()
-	m.lobbies[id] = NewLobby(m.ctx, req.Name)
+	m.lobbies[id] = NewLobby(m.ctx, req.Name, id)
 
 	// format to return otp in to the frontend
 	type response struct {
