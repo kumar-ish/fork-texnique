@@ -15,7 +15,6 @@ let mobile = false;
 let showShadow = false;
 let skippedProblems = [];
 let showSkipped = false;
-let musicShuffled = false;
 
 // Set in respective HTML file (if relevant)
 let isMultiplayer = false;
@@ -564,7 +563,6 @@ function shuffleMusic() {
     } else {
         sound.attr("src", audioFolder + "John Cena Speaking Chinese and Eating Ice Cream.mp3");
     }
-    musicShuffled = true;
 
     if ($("#toggle-music").attr("src").includes("pause")) {
         sound[0].play();
