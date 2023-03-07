@@ -546,8 +546,6 @@ function createLobby() {
 function shuffleMusic() {
     let randomNum = Math.random();
 
-    console.log(randomNum)
-
     const sound = $("#background-music");
     const audioFolder = "/assets/audio/"
     if (randomNum < 0.2) {
