@@ -269,6 +269,24 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 
 	go client.readMessages()
 	go client.writeMessages()
+
+	// Sending newMember events to all joined clients
+
+	var broadMessage = NewMemberEvent{client.name}
+
+	data, err := json.Marshal(broadMessage)
+
+	var outgoingEvent = Event{EventNewMember, data}
+	for c := range client.lobby.clients {
+		//log.Println("Sending join message to", c.name)
+		if (c.name != client.name) {
+			c.egress <- outgoingEvent
+		}
+		var smallMessage = NewMemberEvent{c.name}
+		data, err = json.Marshal(smallMessage)
+		var smallOutgoingEvent = Event{EventNewMember, data}
+		client.egress <- smallOutgoingEvent
+	}
 }
 
 func (m *Manager) createLobbyHandler(w http.ResponseWriter, r *http.Request) {

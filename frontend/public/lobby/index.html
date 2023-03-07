@@ -79,23 +79,16 @@
             <div id="lobby-screen" style="display:none;">
               <div id="lobby-user-manager">
                 <div id="lobby-user-list">
-                  <p>People: 3/100</p>
+                  <p id="lobby-user-count">People: 1/100</p>
                   <div class="lobby-people">
-                    <button class="latex-button lobby-person">Liam</button>
-                    <button class="latex-button lobby-person">Sean</button>
-                    <button class="latex-button lobby-person">Steve</button>
-                    <button class="latex-button lobby-person">Chris</button>
-                    <button class="latex-button lobby-person">Jye</button>
-                    <button class="latex-button lobby-person">Caleb</button>
-                    <button class="latex-button lobby-person">Ali</button>
                   </div>
                   </ul>
                 </div>
                 <div id="lobby-invitelink">
-                  <p id="copy-lobby"></p>
+                  <p id="copy-lobby" style="margin:8px;"></p>
                 </div>
             </div>
-              <div id="lobby-manager">
+              <div id="lobby-manager" style="display:none;">
                 <div id="lobby-settings">
                   <div class="setting">
                     <div class="setting-key">
@@ -105,7 +98,7 @@
                       <input id="duration" style="vertical-align:text-top;width:100%;" name="duration" type="range" min="1" max="60" value="10" >
                     </div>
                   </div>
-
+                  <!--
                   <div class="setting">
                     <div class="setting-key">
                       <label for="random-order">Random Order:</label>
@@ -123,7 +116,7 @@
                       <input type="file" id="custom-problems" style="width:172px;">
                     </div>
                   </div>
-
+                -->
                   <!--
                   <div class="setting">
                     <div class="setting-key">
@@ -142,7 +135,7 @@
                 </div>
               </div>
             </div>
-
+            <button class="latex-button" id="lobby-settings-button" style="display:none;">Open Settings</button>
             <br><br><br>
 
             <div id="hint-text">

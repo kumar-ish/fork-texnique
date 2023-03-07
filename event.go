@@ -72,7 +72,7 @@ type StartGameEvent struct {
 
 // AnswerEvent is passed in when the game is started by the owner
 type RequestStartGameEvent struct {
-	Duration int `json:"duration"`
+	Duration int `json:"durationTime"`
 }
 
 // NewProblemEvent is returned when a new problem is generated
@@ -144,8 +144,11 @@ func StartGameHandler(event Event, c *Client) error {
 	if *c.lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
 	}
-
-	// c.lobby.timeLimit = reqevent.Duration
+	var chatevent RequestStartGameEvent
+	if err := json.Unmarshal(event.Payload, &chatevent); err != nil {
+		return fmt.Errorf("bad payload in request: %v", err)
+	}
+	c.lobby.timeLimit = chatevent.Duration
 	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
 
 	if !DEBUG {
