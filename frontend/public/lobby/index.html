@@ -80,7 +80,8 @@
             <div id="lobby-screen" style="display:none;">
               <div id="lobby-user-manager">
                 <div id="lobby-user-list">
-                  <p id="lobby-user-count">People: 1/100</p>
+                  <u><b>Members</b></u><br>
+                  <!-- <p id="lobby-user-count">People: 1/100</p> -->
                   <div class="lobby-people">
                   </div>
                   </ul>
@@ -91,6 +92,7 @@
             </div>
               <div id="lobby-manager" style="display:none;">
                 <div id="lobby-settings">
+                  <u><b>Settings</b></u><br>
                   <div class="setting">
                     <div class="setting-key">
                       <label id="durationTime" for="duration">Duration (10 minutes)</label>
@@ -99,7 +101,6 @@
                       <input id="duration" style="vertical-align:text-top;width:100%;" name="duration" type="range" min="1" max="60" value="10" >
                     </div>
                   </div>
-                  <!--
                   <div class="setting">
                     <div class="setting-key">
                       <label for="random-order">Random Order:</label>
@@ -114,10 +115,11 @@
                       <label for="custom-problems">Custom Problems:</label>
                     </div>
                     <div class="setting-value">
-                      <input type="file" id="custom-problems" style="width:172px;">
+                      <input type="checkbox" id="custom-problems">
                     </div>
                   </div>
-                -->
+                  <textarea id="custom-problems-textarea"></textarea><br>
+
                   <!--
                   <div class="setting">
                     <div class="setting-key">
@@ -136,7 +138,7 @@
                 </div>
               </div>
             </div>
-            <button class="latex-button" id="lobby-settings-button" style="display:none;">Open Settings</button>
+            <button class="latex-button" id="lobby-settings-button" style="display:none;">Toggle Settings</button>
             <br><br><br>
 
             <div id="hint-text">

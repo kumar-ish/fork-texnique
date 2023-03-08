@@ -452,8 +452,8 @@ function addNewUser(username) {
     newButton.classList.add("lobby-person");
     const lobbyPeople = document.getElementsByClassName("lobby-people")[0];
     lobbyPeople.appendChild(newButton)
-    const lobbyCount = document.getElementById("lobby-user-count");
-    lobbyCount.innerText = `People: ${lobbyPeople.childElementCount}/100`
+    // const lobbyCount = document.getElementById("lobby-user-count");
+    // lobbyCount.innerText = `People: ${lobbyPeople.childElementCount}/100`
 }
 
 /**
@@ -729,6 +729,15 @@ $(document).ready(function() {
         if (urlParams.get('l') != null) {
             convertLobbyToLogin();
         }
+
+        $("#custom-problems").change(function() {
+            if($(this).is(':checked') )
+                $("#custom-problems-textarea").show();
+            else
+                $("#custom-problems-textarea").hide();
+            }
+        );
+
     } else {
         $("#skip-button").after("<button id='end-game-button' class='latex-button'>End Game</button>");
 
