@@ -82,7 +82,7 @@ type Lobby struct {
 	id        string
 	name      string
 	timeLimit int
-	startTime *int
+	startTime *time.Time
 	owner     *string
 	gameState GameState
 
