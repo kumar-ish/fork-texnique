@@ -96,11 +96,37 @@ main {
 
 #left-buttons {
 	float: left;
-	display: inline-block;
+	display: flex;
 }
 
 #skip-button {
-	margin-bottom: 5px;
+}
+
+#toggle-music-wrapper {
+	display: flex;
+	padding: 1px;
+}
+
+#toggle-music {
+	width: 35px;
+	cursor: pointer;
+}
+
+#shuffle-music-wrapper {
+	display: flex;
+	justify-content: center;
+	padding: 7px;
+}
+
+#shuffle-music {
+	width: 25px;
+	cursor: pointer;
+}
+
+.important-numbers {
+	display: grid; 
+	grid-template-columns: max-content max-content; 
+	grid-template-rows: 1fr 1fr; 
 }
 
 #top-row {
@@ -117,6 +143,7 @@ main {
 }
 
 #score {
+	text-align: center;
 	font-family: KaTeX_Main, serif;
 }
 
