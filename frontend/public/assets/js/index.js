@@ -599,9 +599,53 @@ function createLobby() {
     return false;
 }
 
+function shuffleMusic() {
+    let randomNum = Math.random();
+
+    const sound = $("#background-music");
+    const audioFolder = "/assets/audio/"
+    if (randomNum < 0.2) {
+        sound.attr("src", audioFolder + "wanderer.mp3");
+    } else if (randomNum < 0.4) {
+        sound.attr("src", audioFolder + "sonata31.mp3");
+    } else if (randomNum < 0.6) {
+        sound.attr("src", audioFolder + "sonataforcelloandpiano.mp3");
+    } else if (randomNum < 0.8) {
+        sound.attr("src", audioFolder + "sonata19.mp3");
+    } else if (randomNum < 0.98) {
+        sound.attr("src", audioFolder + "sonata13.mp3");
+    } else {
+        sound.attr("src", audioFolder + "bingchilling.mp3");
+    }
+
+    if ($("#toggle-music").attr("src").includes("pause")) {
+        sound[0].play();
+    }
+}
+
 // Start by showing the intro.
 $(document).ready(function() {
+    shuffleMusic();
     // Handlers
+    const toggleSvg = $("#toggle-music");
+    toggleSvg.on('click', function() {
+
+        const sound = $("#background-music");
+        // Change toggleSvg's src attribute to be pause.svg using jquery
+        if (toggleSvg.attr("src").includes("pause")) {
+            toggleSvg.attr("src", "/assets/image/play.svg");
+            sound[0].pause();
+        } else {
+            toggleSvg.attr("src", "/assets/image/pause.svg");
+            sound[0].play();
+        }
+    });
+
+    const shuffleButton = $("#shuffle-music");
+    shuffleButton.on('click', function() {
+        shuffleMusic();
+    });
+
     $("#start-button-timed").click(function() {
         startGame(true);
     });
@@ -686,7 +730,7 @@ $(document).ready(function() {
             convertLobbyToLogin();
         }
     } else {
-        $("#left-buttons").append("<button id='end-game-button' class='latex-button'>End Game</button>");
+        $("#skip-button").after("<button id='end-game-button' class='latex-button'>End Game</button>");
 
         $("#end-game-button").click(function() {
             endGame();
