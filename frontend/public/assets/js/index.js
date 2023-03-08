@@ -551,17 +551,17 @@ function shuffleMusic() {
     const sound = $("#background-music");
     const audioFolder = "/assets/audio/"
     if (randomNum < 0.2) {
-        sound.attr("src", audioFolder + "Fantasy in C major D.760 (op.15) Wanderer - II. Adagio.mp3");
+        sound.attr("src", audioFolder + "wanderer.mp3");
     } else if (randomNum < 0.4) {
-        sound.attr("src", audioFolder + "Sonata No. 31 in A Flat Major, Op. 110 - I, Moderato cantabile molto espressivo.mp3");
+        sound.attr("src", audioFolder + "sonata31.mp3");
     } else if (randomNum < 0.6) {
-        sound.attr("src", audioFolder + "Sonata for Cello and Piano No. 1 in E minor, Op. 38.mp3");
+        sound.attr("src", audioFolder + "sonataforcelloandpiano.mp3");
     } else if (randomNum < 0.8) {
-        sound.attr("src", audioFolder + "Sonata No. 19 in G Minor, Op. 49 No. 1 - I. Andante.mp3");
+        sound.attr("src", audioFolder + "sonata19.mp3");
     } else if (randomNum < 0.98) {
-        sound.attr("src", audioFolder + "Sonata No. 13 In B Flat Major, K.333 - II. Andante Cantabile.mp3");
+        sound.attr("src", audioFolder + "sonata13.mp3");
     } else {
-        sound.attr("src", audioFolder + "John Cena Speaking Chinese and Eating Ice Cream.mp3");
+        sound.attr("src", audioFolder + "bingchilling.mp3");
     }
 
     if ($("#toggle-music").attr("src").includes("pause")) {
