@@ -185,11 +185,11 @@ func (l *Lobby) saveEndedGame() {
 
 	err = ioutil.WriteFile(filepath.Join(logsPath, l.id+".result.json"), data, 0644)
 	if err != nil {
-		fmt.Println("Failed to save game {} to disk", l.id)
+		fmt.Printf("Failed to save game %s to disk\n", l.id)
 		return
 	}
 
-	fmt.Println("Saved game {} to disk", l.id)
+	fmt.Printf("Saved game %s to disk\n", l.id)
 }
 
 // EventStartGame is sent when the game is started by the owner
