@@ -14,21 +14,17 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var (
-	/**
-	websocketUpgrader is used to upgrade incomming HTTP requests into a persistent websocket connection
-	*/
-	websocketUpgrader = websocket.Upgrader{
-		// Apply the Origin Checker
-		CheckOrigin:     checkOrigin,
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-)
+/**
+websocketUpgrader is used to upgrade incomming HTTP requests into a persistent websocket connection
+*/
+var websocketUpgrader = websocket.Upgrader{
+	// Apply the Origin Checker
+	CheckOrigin:     checkOrigin,
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
-var (
-	ErrEventNotSupported = errors.New("this event type is not supported")
-)
+var ErrEventNotSupported = errors.New("this event type is not supported")
 
 var handlers = map[string]EventHandler{
 	EventStartGameOwner: StartGameHandler,
@@ -101,7 +97,7 @@ type Lobby struct {
 	sync.RWMutex
 
 	// otps is a map of allowed OTP to accept connections from
-	otps RetentionMap
+	otps *RetentionMap
 }
 
 // UUID to Lobby map
@@ -190,7 +186,6 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 
 // loginHandler is used to verify an user authentication and return a one time password
 func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
-
 	type userLoginRequest struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -263,7 +258,6 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 // serveWS is a HTTP Handler that the has the Manager that allows connections
 func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
-
 	// Grab the OTP in the Get param
 	otp := r.URL.Query().Get("otp")
 	if otp == "" {

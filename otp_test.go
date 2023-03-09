@@ -25,7 +25,6 @@ func TestRetentionMap_VerifyOTP(t *testing.T) {
 }
 
 func TestOTP_Retention(t *testing.T) {
-
 	// Create context with cancel to stop goroutine
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -41,11 +40,11 @@ func TestOTP_Retention(t *testing.T) {
 	otp := rm.NewOTP()
 
 	// Make sure that only 1 password is still left and it matches the latest
-	if len(rm) != 1 {
+	if len(rm.retentionMap) != 1 {
 		t.Error("Failed to clean up")
 	}
 
-	if rm[otp.Key] != otp {
+	if *rm.retentionMap[otp.Key] != otp {
 		t.Error("The key should still be in place")
 	}
 	cancel()
