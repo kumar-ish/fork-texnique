@@ -163,7 +163,9 @@ func (lobby *Lobby) inPlay() bool {
 func (m *Manager) routeEvent(event Event, c *Client) error {
 	// Check if Handler is present in Map
 	if handler, ok := handlers[event.Type]; ok {
-		println("Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type + "")
+		println(time.Now().Format("2006/01/02 15:04:05") +
+			" Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type,
+		)
 		// Execute the handler and return any err
 		if err := handler(event, c); err != nil {
 			return err
