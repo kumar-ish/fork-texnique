@@ -150,18 +150,20 @@ func endGameLobby(l *Lobby, message string) error {
 
 // EventStartGame is sent when the game is started by the owner
 func StartGameHandler(event Event, c *Client) error {
+	lobby := c.lobby
+
 	// var reqevent RequestStartGameEvent
 	// if err := json.Unmarshal(event.Payload, &reqevent); err != nil {
 	// 	return fmt.Errorf("bad payload in request: %v", err)
 	// }
-	if *c.lobby.owner != c.name {
+	if *lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
-	} else if c.lobby.inPlay() {
+	} else if lobby.inPlay() {
 		return fmt.Errorf("game is already in progress")
 	}
 
 	// c.lobby.timeLimit = reqevent.Duration
-	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
+	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), lobby.timeLimit}
 
 	if !DEBUG {
 		time.Sleep(TIME_TO_START_GAME)
@@ -172,16 +174,16 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	c.lobby.startGame()
+	lobby.startGame()
 
 	// Send start game message
 	var outgoingEvent = Event{EventStartGame, data}
-	for client := range c.lobby.clients {
+	for client := range lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
 	// Send the first problem (all users get the same problem & their question number starts off at 0)
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[0]]}
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[lobby.Problems[0]]}
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
@@ -189,19 +191,21 @@ func StartGameHandler(event Event, c *Client) error {
 	}
 
 	outgoingEvent = Event{EventNewProblem, data}
-	for client := range c.lobby.clients {
+	for client := range lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
 	// End the game after the duration of the game
-	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() {
-		c.lobby.endGame()
+	time.AfterFunc(time.Duration(lobby.timeLimit)*time.Second, func() {
+		lobby.endGame()
 
-		endGameLobby(c.lobby, "Game over!")
+		endGameLobby(lobby, "Game over!")
+		for client := range lobby.clients {
+			lobby.removeClient(client)
+		}
 
 		// We can delete the lobby from the map now and have that be GC'd later
-		// TODO: worry about other deletions?
-		delete(c.manager.lobbies, c.lobby.id)
+		delete(c.manager.lobbies, lobby.id)
 	})
 
 	return nil
