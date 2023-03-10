@@ -7,6 +7,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -56,19 +58,20 @@ type User struct {
 	score          int
 }
 
-type GameState int64
+type GameState string
 
 const (
-	WaitingForPlayers GameState = iota
-	InPlay            GameState = iota
-	Finished          GameState = iota
+	WaitingForPlayers GameState = "waiting"
+	InPlay            GameState = "playing"
+	Finished          GameState = "finished"
+	DNE               GameState = "dne"
 )
 
 type Lobby struct {
 	id        string
 	name      string
 	timeLimit int
-	startTime *int
+	startTime *time.Time
 	owner     *string
 	gameState GameState
 
@@ -112,7 +115,7 @@ func NewLobby(ctx context.Context, name string, id string) *Lobby {
 	l := &Lobby{
 		userMapping: make(map[string]User),
 		otpMapping:  make(map[string]string),
-		timeLimit:   600,
+		timeLimit:   30,
 		id:          id,
 		name:        name,
 		owner:       nil,
@@ -292,6 +295,51 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 
 	go client.readMessages()
 	go client.writeMessages()
+}
+
+func (m *Manager) lobbyStatus(w http.ResponseWriter, r *http.Request) {
+	type lobbyStatusRequest struct {
+		Id string `json:"lobbyId"`
+	}
+	var req lobbyStatusRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	type response struct {
+		Status GameState `json:"lobbyStatus"`
+	}
+
+	lobby, lobbyExists := m.lobbies[req.Id]
+
+	if !lobbyExists {
+		var resp response
+		// If lobby doesn't exist in map, either it's been deleted or the game has ended
+		logFilepath := filepath.Join(".", "logs", req.Id+".result.json")
+		if _, err := os.Stat(logFilepath); errors.Is(err, os.ErrNotExist) {
+			resp = response{Status: DNE}
+		} else {
+			resp = response{Status: Finished}
+		}
+		data, err := json.Marshal(resp)
+
+		if err != nil {
+			log.Println(err)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+		return
+	}
+
+	resp := response{Status: lobby.gameState}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		log.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
 
 func (m *Manager) createLobbyHandler(w http.ResponseWriter, r *http.Request) {

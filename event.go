@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -148,6 +149,50 @@ func endGameLobby(l *Lobby, message string) error {
 	return nil
 }
 
+// @dev Requires that the lobby is in the Finished state
+func (l *Lobby) saveEndedGame() {
+	if l.gameState != Finished {
+		return
+	}
+
+	type Player struct {
+		Name  string `json:"name"`
+		Score int    `json:"score"`
+	}
+	type SavedGameResult struct {
+		Name           string    `json:"name"`
+		Players        []Player  `json:"players"`
+		StartTimestamp time.Time `json:"startTimestamp"`
+		GameDuration   int       `json:"gameDuration"`
+	}
+
+	var savedGameRes = SavedGameResult{l.name, make([]Player, 0, len(l.userMapping)), *l.startTime, l.timeLimit}
+	for name, user := range l.userMapping {
+		savedGameRes.Players = append(savedGameRes.Players, Player{name, user.score})
+	}
+
+	data, err := json.Marshal(savedGameRes)
+	if err != nil {
+		fmt.Println("Failed to save game {} to JSON", l.id)
+		return
+	}
+
+	logsPath := filepath.Join(".", "logs")
+	err = os.MkdirAll(logsPath, os.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create logs directory")
+		return
+	}
+
+	err = ioutil.WriteFile(filepath.Join(logsPath, l.id+".result.json"), data, 0644)
+	if err != nil {
+		fmt.Printf("Failed to save game %s to disk\n", l.id)
+		return
+	}
+
+	fmt.Printf("Saved game %s to disk\n", l.id)
+}
+
 // EventStartGame is sent when the game is started by the owner
 func StartGameHandler(event Event, c *Client) error {
 	lobby := c.lobby
@@ -162,8 +207,10 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("game is already in progress")
 	}
 
-	// c.lobby.timeLimit = reqevent.Duration
-	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), lobby.timeLimit}
+	startTime := time.Now().Add(TIME_TO_START_GAME)
+	c.lobby.startTime = &startTime
+
+	var broadMessage = StartGameEvent{startTime, c.lobby.timeLimit}
 
 	if !DEBUG {
 		time.Sleep(TIME_TO_START_GAME)
@@ -204,6 +251,7 @@ func StartGameHandler(event Event, c *Client) error {
 			lobby.removeClient(client)
 		}
 
+		c.lobby.saveEndedGame()
 		// We can delete the lobby from the map now and have that be GC'd later
 		delete(c.manager.lobbies, lobby.id)
 	})
