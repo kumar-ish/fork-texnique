@@ -20,7 +20,7 @@ var (
 	*/
 	websocketUpgrader = websocket.Upgrader{
 		// Apply the Origin Checker
-		CheckOrigin:     checkOrigin,
+		CheckOrigin:     nil,
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
@@ -34,20 +34,6 @@ var handlers = map[string]EventHandler{
 	EventStartGameOwner: StartGameHandler,
 	EventGiveAnswer:     GiveAnswerHandler,
 	EventRequestProblem: RequestProblemHandler,
-}
-
-// checkOrigin will check origin and return true if its allowed
-func checkOrigin(r *http.Request) bool {
-	// Grab the request origin
-	origin := r.Header.Get("Origin")
-
-	switch origin {
-	// (TODO: do we need to change this when deploying with https?)
-	case "http://localhost:8080":
-		return true
-	default:
-		return false
-	}
 }
 
 type Problem struct {
