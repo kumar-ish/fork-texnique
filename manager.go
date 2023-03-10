@@ -22,7 +22,7 @@ var (
 	*/
 	websocketUpgrader = websocket.Upgrader{
 		// Apply the Origin Checker
-		CheckOrigin:     checkOrigin,
+		CheckOrigin:     nil,
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
@@ -36,20 +36,6 @@ var handlers = map[string]EventHandler{
 	EventStartGameOwner: StartGameHandler,
 	EventGiveAnswer:     GiveAnswerHandler,
 	EventRequestProblem: RequestProblemHandler,
-}
-
-// checkOrigin will check origin and return true if its allowed
-func checkOrigin(r *http.Request) bool {
-	// Grab the request origin
-	origin := r.Header.Get("Origin")
-
-	switch origin {
-	// (TODO: do we need to change this when deploying with https?)
-	case "http://localhost:8080":
-		return true
-	default:
-		return false
-	}
 }
 
 type Problem struct {
@@ -180,7 +166,9 @@ func (lobby *Lobby) inPlay() bool {
 func (m *Manager) routeEvent(event Event, c *Client) error {
 	// Check if Handler is present in Map
 	if handler, ok := handlers[event.Type]; ok {
-		println("Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type + "")
+		println(time.Now().Format("2006/01/02 15:04:05") +
+			" Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type,
+		)
 		// Execute the handler and return any err
 		if err := handler(event, c); err != nil {
 			return err
@@ -278,6 +266,11 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 	lobby, lobbyExists := m.lobbies[lobbyName]
 	if !lobbyExists {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if lobby.gameState == Finished {
+		// Don't allow users to connected if the game has ended
+		w.WriteHeader(http.StatusGone)
 		return
 	}
 
