@@ -521,7 +521,7 @@ function showStatistics(id) {
     $("#participant-scores").show();
 
 
-    fetch('http://localhost:8080/logs/' + id + '.result.json')
+    fetch(window.location.origin + '/logs/' + id + '.result.json')
         .then(response => response.json())
         .then(data => {
             data.players.sort((player1, player2) => player2.score - player1.score)
