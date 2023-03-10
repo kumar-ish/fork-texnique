@@ -263,6 +263,11 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	if lobby.gameState == Finished {
+		// Don't allow users to connected if the game has ended
+		w.WriteHeader(http.StatusGone)
+		return
+	}
 
 	// Verify OTP is existing
 	if !lobby.otps.VerifyOTP(otp) {
