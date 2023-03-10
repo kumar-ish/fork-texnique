@@ -160,12 +160,13 @@ func (l *Lobby) saveEndedGame() {
 		Score int    `json:"score"`
 	}
 	type SavedGameResult struct {
+		Name           string    `json:"name"`
 		Players        []Player  `json:"players"`
 		StartTimestamp time.Time `json:"startTimestamp"`
 		GameDuration   int       `json:"gameDuration"`
 	}
 
-	var savedGameRes = SavedGameResult{make([]Player, 0, len(l.userMapping)), *l.startTime, l.timeLimit}
+	var savedGameRes = SavedGameResult{l.name, make([]Player, 0, len(l.userMapping)), *l.startTime, l.timeLimit}
 	for name, user := range l.userMapping {
 		savedGameRes.Players = append(savedGameRes.Players, Player{name, user.score})
 	}

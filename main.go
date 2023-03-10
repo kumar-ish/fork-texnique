@@ -32,11 +32,13 @@ func setupAPI(ctx context.Context) {
 	// Create a Manager instance used to handle WebSocket Connections
 	manager := NewManager(ctx)
 
-	// Basic routes (frontend + creation of lobby)
+	// Basic routes (frontend + logs + creation of lobby)
 	http.Handle("/", http.FileServer(http.Dir("./frontend/public")))
+	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir("./logs"))))
 	http.HandleFunc("/createLobby", manager.createLobbyHandler)
 
 	// Routes used for lobby
 	http.HandleFunc("/login", manager.loginHandler)
 	http.HandleFunc("/ws", manager.serveWS)
+	http.HandleFunc("/lobbyStatus", manager.lobbyStatus)
 }

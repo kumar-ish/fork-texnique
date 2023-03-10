@@ -76,12 +76,16 @@
 
               <p id="connection-header"></p>
             </div>
+            <div id="dne" style="display:none">
+              <p>
+                This game does not exist -- are you sure you have the right URL?
+              </p>
+            </div>
             <button id="start-multiplayer-button" class="latex-button" style="display:none">Start Game</button>
             <p id="copy-lobby"></p>
 
-            <br><br><br>
-
-            <div id="hint-text">
+            <div id="hint-text" style="display:none">
+              <br><br><br>
               <b>Hints:</b>
               <ul id="hint-list">
                 <li>No  \(\texttt{\$}\)  signs needed</li>
@@ -166,18 +170,6 @@
             <p> Edit your code here: </p>
 
             <textarea id="user-input" class="latex-source"></textarea>
-
-            <table id="participant-scores" class="latex-source">
-              <thead>
-                <tr>
-                  <th><u>Player Name</u></th>
-                  <th><u>Score</u></th>
-                </tr>
-              </thead>
-              <tbody class="centered-list">
-                <!-- leaderboard data will be dynamically added here -->
-              </tbody>
-            </table>
           
             <br><br>
 
@@ -187,6 +179,19 @@
               <p id="toggle-shadow-desc">Toggle Shadow</p>
             </div>
         </div>
+        <br>
+        <a id="lobby-end-text"></a>
+        <table id="participant-scores" class="latex-source" style="display:none">
+          <thead>
+            <tr>
+              <th><u>Player Name</u></th>
+              <th><u>Score</u></th>
+            </tr>
+          </thead>
+          <tbody class="centered-list">
+            <!-- leaderboard data will be dynamically added here -->
+          </tbody>
+        </table>
     </div>
   </main>
 </body>
