@@ -534,7 +534,7 @@ function showStatistics(id) {
 
             $("#lobby-end-text").append("<p style='text-align:center'><u><b>Lobby Statistics</u></b></p>");
             $("#lobby-end-text").append(
-                `The lobby <b>${data.name}</b> ended started at ${formattedDate} and lasted for ${numMinutes} minutes.<br><br>`
+                `The lobby <b>${data.name}</b> started at ${formattedDate} and lasted for ${numMinutes} minutes.<br><br>`
             );
         });
 }

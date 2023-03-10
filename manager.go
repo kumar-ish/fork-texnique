@@ -129,7 +129,7 @@ func NewLobby(ctx context.Context, name string, id string) *Lobby {
 	l := &Lobby{
 		userMapping: make(map[string]User),
 		otpMapping:  make(map[string]string),
-		timeLimit:   600,
+		timeLimit:   30,
 		id:          id,
 		name:        name,
 		owner:       nil,
