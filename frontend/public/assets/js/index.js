@@ -498,7 +498,7 @@ function login() {
     return false;
 }
 
-function copyButton() {
+function copyButton(newURL) {
     let copyPromptText = `Copy this link to invite others to your lobby:`
     $("#copy-lobby").text(copyPromptText);
 
@@ -569,7 +569,7 @@ function createLobby() {
         console.log(newURL);
         history.replaceState(null, null, "/lobby/?l=" + data.l)
 
-        copyButton();
+        copyButton(newURL);
         convertLobbyToLogin();
     }).catch((e) => { alert(e) });
     return false;
