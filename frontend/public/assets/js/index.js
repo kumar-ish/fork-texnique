@@ -493,7 +493,12 @@ function connectWebsocket(otp, lobby) {
     if (window["WebSocket"]) {
         console.log("supports websockets");
         // Connect to websocket using OTP as a GET parameter
-        conn = new WebSocket(`ws://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
+        let prefix = "ws";
+        if (!debug) {
+            prefix = "wss";
+        }
+        
+        conn = new WebSocket(prefix + `://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
 
         // Onopen
         conn.onopen = function (evt) {
