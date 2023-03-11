@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -158,15 +159,61 @@ func endGameLobby(l *Lobby, message string) error {
 	return nil
 }
 
+// @dev Requires that the lobby is in the Finished state
+func (l *Lobby) saveEndedGame() {
+	if l.gameState != Finished {
+		return
+	}
+
+	type Player struct {
+		Name  string `json:"name"`
+		Score int    `json:"score"`
+	}
+	type SavedGameResult struct {
+		Name           string    `json:"name"`
+		Players        []Player  `json:"players"`
+		StartTimestamp time.Time `json:"startTimestamp"`
+		GameDuration   int       `json:"gameDuration"`
+	}
+
+	var savedGameRes = SavedGameResult{l.name, make([]Player, 0, len(l.userMapping)), *l.startTime, l.timeLimit}
+	for name, user := range l.userMapping {
+		savedGameRes.Players = append(savedGameRes.Players, Player{name, user.score})
+	}
+
+	data, err := json.Marshal(savedGameRes)
+	if err != nil {
+		fmt.Println("Failed to save game {} to JSON", l.id)
+		return
+	}
+
+	logsPath := filepath.Join(".", "logs")
+	err = os.MkdirAll(logsPath, os.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create logs directory")
+		return
+	}
+
+	err = ioutil.WriteFile(filepath.Join(logsPath, l.id+".result.json"), data, 0644)
+	if err != nil {
+		fmt.Printf("Failed to save game %s to disk\n", l.id)
+		return
+	}
+
+	fmt.Printf("Saved game %s to disk\n", l.id)
+}
+
 // EventStartGame is sent when the game is started by the owner
 func StartGameHandler(event Event, c *Client) error {
+	lobby := c.lobby
+
 	// var reqevent RequestStartGameEvent
 	// if err := json.Unmarshal(event.Payload, &reqevent); err != nil {
 	// 	return fmt.Errorf("bad payload in request: %v", err)
 	// }
-	if *c.lobby.owner != c.name {
+	if *lobby.owner != c.name {
 		return fmt.Errorf("only the owner can start the game")
-	} else if c.lobby.inPlay() {
+	} else if lobby.inPlay() {
 		return fmt.Errorf("game is already in progress")
 	}
 	var chatevent RequestStartGameEvent
@@ -208,12 +255,15 @@ func StartGameHandler(event Event, c *Client) error {
 
 			for i := 0; i < len(c.lobby.Problems); i++ {
 
-				c.lobby.Problems[i] = i
+				lobby.Problems[i] = i
 			}
-
 		}
 	}
-	var broadMessage = StartGameEvent{time.Now().Add(TIME_TO_START_GAME), c.lobby.timeLimit}
+
+	startTime := time.Now().Add(TIME_TO_START_GAME)
+	lobby.startTime = &startTime
+
+	var broadMessage = StartGameEvent{startTime, c.lobby.timeLimit}
 
 	if !DEBUG {
 		time.Sleep(TIME_TO_START_GAME)
@@ -224,19 +274,19 @@ func StartGameHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	c.lobby.startGame()
+	lobby.startGame()
 
 	// Send start game message
 	var outgoingEvent = Event{EventStartGame, data}
-	for client := range c.lobby.clients {
+	for client := range lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
 	// Send the first problem (all users get the same problem & their question number starts off at 0)
 
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[0]]}
+	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[lobby.Problems[0]]}
 	if UseCustomProblems {
-		newProblemBroadcast = NewProblemEvent{c.lobby.CustomProblems[c.lobby.CustomOrder[0]]}
+		newProblemBroadcast = NewProblemEvent{lobby.CustomProblems[lobby.CustomOrder[0]]}
 	}
 
 	data, err = json.Marshal(newProblemBroadcast)
@@ -245,19 +295,22 @@ func StartGameHandler(event Event, c *Client) error {
 	}
 
 	outgoingEvent = Event{EventNewProblem, data}
-	for client := range c.lobby.clients {
+	for client := range lobby.clients {
 		client.egress <- outgoingEvent
 	}
 
 	// End the game after the duration of the game
-	time.AfterFunc(time.Duration(c.lobby.timeLimit)*time.Second, func() {
-		c.lobby.endGame()
+	time.AfterFunc(time.Duration(lobby.timeLimit)*time.Second, func() {
+		lobby.endGame()
 
-		endGameLobby(c.lobby, "Game over!")
+		endGameLobby(lobby, "Game over!")
+		for client := range lobby.clients {
+			lobby.removeClient(client)
+		}
 
+		c.lobby.saveEndedGame()
 		// We can delete the lobby from the map now and have that be GC'd later
-		// TODO: worry about other deletions?
-		delete(c.manager.lobbies, c.lobby.id)
+		delete(c.manager.lobbies, lobby.id)
 	})
 
 	return nil

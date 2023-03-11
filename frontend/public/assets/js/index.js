@@ -9,7 +9,7 @@ let problemPoints = 0;
 let currentScore = 0;
 let numCorrect = 0;
 let problemsOrder;
-let debug = false;
+let debug = true;
 let lastTarget = '';
 let mobile = false;
 let showShadow = false;
@@ -172,6 +172,7 @@ function startMultiplayerGame() {
         sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
     }
     
+    $("#participant-scores").show();
     return false;
 }
 
@@ -428,6 +429,7 @@ function routeEvent(event) {
             const startGameEvent = Object.assign(new StartGameEvent, event.payload);
             duration = parseInt(startGameEvent.duration)
             startGameSetup();
+            $("#participant-scores").show();
             startTimer(duration, function () {})
             break;
         case "new_problem":
@@ -564,9 +566,50 @@ function login() {
     return false;
 }
 
+function copyButton(newURL) {
+    let copyPromptText = `Copy this link to invite others to your lobby:`
+    $("#copy-lobby").text(copyPromptText);
+
+    // Copy link to clipboard button
+    $("#copy-lobby").append("<button id='copy-lobby-button' class='latex-button'></button>")
+    let copyButton = document.getElementById("copy-lobby-button");
+    copyButton.addEventListener("click", function() {
+        navigator.clipboard.writeText(newURL);
+    });
+    $("#copy-lobby-button").text("Copy Link");
+}
+
 function convertLobbyToLogin() {
     $("#create-lobby-form").hide();
     $("#login-form").show();
+}
+
+function showStatistics(id) {
+    $("#create-lobby-form").hide();
+    $("#participant-scores").show();
+
+
+    fetch(window.location.origin + '/logs/' + id + '.result.json')
+        .then(response => response.json())
+        .then(data => {
+            data.players.sort((player1, player2) => player2.score - player1.score)
+            for (const user of data.players) {
+                const row = '<tr><td>' + user.name + '</td><td>' + user.score + '</td></tr>';
+                $('#participant-scores tbody').append(row);
+            }
+            const formattedDate = (new Date(data.startTimestamp)).toLocaleString('en-AU', { hour: 'numeric', minute: 'numeric', hour12: true });
+            const numMinutes = data.gameDuration / 60;
+
+            $("#lobby-end-text").append("<p style='text-align:center'><u><b>Lobby Statistics</u></b></p>");
+            $("#lobby-end-text").append(
+                `The lobby <b>${data.name}</b> started at ${formattedDate} and lasted for ${numMinutes} minutes.<br><br>`
+            );
+        });
+}
+
+function lobbyDoesNotExist() {
+    $("#create-lobby-form").hide();
+    $("#dne").show();
 }
 
 /**
@@ -594,17 +637,7 @@ function createLobby() {
         console.log(newURL);
         history.replaceState(null, null, "/lobby/?l=" + data.l)
 
-        let copyPromptText = `Copy this link to invite others to your lobby:`
-        $("#copy-lobby").text(copyPromptText);
-
-        // Copy link to clipboard button
-        $("#copy-lobby").append("<button id='copy-lobby-button' class='latex-button'></button>")
-        let copyButton = document.getElementById("copy-lobby-button");
-        copyButton.addEventListener("click", function() {
-            navigator.clipboard.writeText(newURL);
-        });
-        $("#copy-lobby-button").text("Copy Link");
-
+        copyButton(newURL);
         convertLobbyToLogin();
 
         $("#lobby-manager").show();
@@ -740,7 +773,31 @@ $(document).ready(function() {
         const urlParams = new URLSearchParams(queryString);
 
         if (urlParams.get('l') != null) {
-            convertLobbyToLogin();
+            formData = {
+                "lobbyId": urlParams.get('l')
+            }
+
+            fetch("/lobbyStatus", {
+                method: 'post',
+                body: JSON.stringify(formData),
+                mode: 'cors',
+            }).then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw 'unauthorized';
+                }
+            }).then((data) => {
+                const gameState = data.lobbyStatus;
+
+                if (gameState == "waiting" || gameState == "playing") {
+                    convertLobbyToLogin();
+                } else if (gameState == "finished") {
+                    showStatistics(urlParams.get('l'));
+                } else if (gameState == "dne") {
+                    lobbyDoesNotExist();
+                }
+            }).catch((e) => { alert(e) });
         }
 
         $("#custom-problems").change(function() {

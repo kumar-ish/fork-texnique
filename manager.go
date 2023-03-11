@@ -7,6 +7,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -20,7 +22,7 @@ var (
 	*/
 	websocketUpgrader = websocket.Upgrader{
 		// Apply the Origin Checker
-		CheckOrigin:     checkOrigin,
+		CheckOrigin:     nil,
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
@@ -34,20 +36,6 @@ var handlers = map[string]EventHandler{
 	EventStartGameOwner: StartGameHandler,
 	EventGiveAnswer:     GiveAnswerHandler,
 	EventRequestProblem: RequestProblemHandler,
-}
-
-// checkOrigin will check origin and return true if its allowed
-func checkOrigin(r *http.Request) bool {
-	// Grab the request origin
-	origin := r.Header.Get("Origin")
-
-	switch origin {
-	// (TODO: do we need to change this when deploying with https?)
-	case "http://localhost:8080":
-		return true
-	default:
-		return false
-	}
 }
 
 type Problem struct {
@@ -70,19 +58,20 @@ type User struct {
 	score          int
 }
 
-type GameState int64
+type GameState string
 
 const (
-	WaitingForPlayers GameState = iota
-	InPlay            GameState = iota
-	Finished          GameState = iota
+	WaitingForPlayers GameState = "waiting"
+	InPlay            GameState = "playing"
+	Finished          GameState = "finished"
+	DNE               GameState = "dne"
 )
 
 type Lobby struct {
 	id        string
 	name      string
 	timeLimit int
-	startTime *int
+	startTime *time.Time
 	owner     *string
 	gameState GameState
 
@@ -182,7 +171,9 @@ func (lobby *Lobby) inPlay() bool {
 func (m *Manager) routeEvent(event Event, c *Client) error {
 	// Check if Handler is present in Map
 	if handler, ok := handlers[event.Type]; ok {
-		println("Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type + "")
+		println(time.Now().Format("2006/01/02 15:04:05") +
+			" Event from " + c.name + " in lobby " + c.lobby.name + ": " + event.Type,
+		)
 		// Execute the handler and return any err
 		if err := handler(event, c); err != nil {
 			return err
@@ -282,6 +273,11 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	if lobby.gameState == Finished {
+		// Don't allow users to connected if the game has ended
+		w.WriteHeader(http.StatusGone)
+		return
+	}
 
 	// Verify OTP is existing
 	if !lobby.otps.VerifyOTP(otp) {
@@ -330,6 +326,51 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 		var smallOutgoingEvent = Event{EventNewMember, data}
 		client.egress <- smallOutgoingEvent
 	}
+}
+
+func (m *Manager) lobbyStatus(w http.ResponseWriter, r *http.Request) {
+	type lobbyStatusRequest struct {
+		Id string `json:"lobbyId"`
+	}
+	var req lobbyStatusRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	type response struct {
+		Status GameState `json:"lobbyStatus"`
+	}
+
+	lobby, lobbyExists := m.lobbies[req.Id]
+
+	if !lobbyExists {
+		var resp response
+		// If lobby doesn't exist in map, either it's been deleted or the game has ended
+		logFilepath := filepath.Join(".", "logs", req.Id+".result.json")
+		if _, err := os.Stat(logFilepath); errors.Is(err, os.ErrNotExist) {
+			resp = response{Status: DNE}
+		} else {
+			resp = response{Status: Finished}
+		}
+		data, err := json.Marshal(resp)
+
+		if err != nil {
+			log.Println(err)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+		return
+	}
+
+	resp := response{Status: lobby.gameState}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		log.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
 
 func (m *Manager) createLobbyHandler(w http.ResponseWriter, r *http.Request) {
