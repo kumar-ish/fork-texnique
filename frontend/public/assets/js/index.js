@@ -9,7 +9,7 @@ let problemPoints = 0;
 let currentScore = 0;
 let numCorrect = 0;
 let problemsOrder;
-let debug = true;
+let debug = false;
 let lastTarget = '';
 let mobile = false;
 let showShadow = false;
