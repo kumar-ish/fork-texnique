@@ -8,7 +8,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const MAX_MESSAGE_SIZE = 65536
+// Owner/players have different max message sizes
+const OWNER_MAX_MESSAGE_SIZE = 131072
+const PLAYER_MAX_MESSAGE_SIZE = 512
 
 // ClientList is a map used to help manage a map of clients
 type ClientList map[*Client]bool
@@ -51,8 +53,15 @@ func (c *Client) readMessages() {
 		// Graceful close the connection once this function is done
 		c.lobby.removeClient(c)
 	}()
+
+	var maxMessageSize int64 = PLAYER_MAX_MESSAGE_SIZE
+	if c.lobby.owner == &c.name {
+		maxMessageSize = OWNER_MAX_MESSAGE_SIZE
+	}
+
 	// Set max size of messages in bytes
-	c.connection.SetReadLimit(MAX_MESSAGE_SIZE)
+	c.connection.SetReadLimit(maxMessageSize)
+
 	// Configure wait time for pong response, use `current time + pongWait`
 	// This has to be done here to set the first initial timer
 	if err := c.connection.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
