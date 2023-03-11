@@ -162,8 +162,16 @@ function startGameSetup() {
 
 function startMultiplayerGame() {
     var durationTime = $("#duration").val()*60;
-    sendEvent("start_game_owner", {durationTime});
-
+    var randomOrder = $("#random-order").is(":checked");
+    var useCustomProblems = $("#custom-problems").is(":checked");
+    if (useCustomProblems) {
+        var customProblems = JSON.parse($("#custom-problems-textarea").val());
+        var exclusiveCustomProbems = $("#exclusive-custom-problems").is(":checked");
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems, exclusiveCustomProbems});
+    } else {
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
+    }
+    
     return false;
 }
 
@@ -731,12 +739,15 @@ $(document).ready(function() {
         }
 
         $("#custom-problems").change(function() {
-            if($(this).is(':checked') )
+            if($(this).is(':checked') ) {
                 $("#custom-problems-textarea").show();
-            else
-                $("#custom-problems-textarea").hide();
+                $("#custom-problems-exclusive").show();
             }
-        );
+            else {
+                $("#custom-problems-textarea").hide();
+                $("#custom-problems-exclusive").hide();
+            }
+        });
 
     } else {
         $("#skip-button").after("<button id='end-game-button' class='latex-button'>End Game</button>");

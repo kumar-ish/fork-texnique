@@ -103,10 +103,10 @@
                   </div>
                   <div class="setting">
                     <div class="setting-key">
-                      <label for="random-order">Random Order:</label>
+                      <label for="random-order" checked>Random Order:</label>
                     </div>
                     <div class="setting-value">
-                      <input type="checkbox" id="random-order">
+                      <input type="checkbox" id="random-order" checked>
                     </div>
                   </div>
 
@@ -118,7 +118,15 @@
                       <input type="checkbox" id="custom-problems">
                     </div>
                   </div>
-                  <textarea id="custom-problems-textarea"></textarea><br>
+                  <textarea id="custom-problems-textarea"></textarea>
+                  <div class="setting" style="display:none;" id="custom-problems-exclusive">
+                    <div class="setting-key">
+                      <label for="exclusive-custom-problems">Use Exclusively:</label>
+                    </div>
+                    <div class="setting-value">
+                      <input type="checkbox" id="exclusive-custom-problems">
+                    </div>
+                  </div><br>
 
                   <!--
                   <div class="setting">
