@@ -296,35 +296,35 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 	// Create New Client
 	client := NewClient(conn, m, lobby, otp)
 	// Add the newly created client to the manager
-	m.lobbies[lobbyName].addClient(client)
+	lobby.addClient(client)
 
 	go client.readMessages()
 	go client.writeMessages()
 
-	// Sending newMember events to all joined clients
+	if lobby.gameState == WaitingForPlayers {
+		// Sending newMember events to all joined clients
+		var broadMessage = NewMemberEvent{client.name}
 
-	var broadMessage = NewMemberEvent{client.name}
-
-	data, err := json.Marshal(broadMessage)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	var outgoingEvent = Event{EventNewMember, data}
-	for c := range client.lobby.clients {
-		//log.Println("Sending join message to", c.name)
-		if c.name != client.name {
-			c.egress <- outgoingEvent
-		}
-		var smallMessage = NewMemberEvent{c.name}
-		data, err = json.Marshal(smallMessage)
+		data, err := json.Marshal(broadMessage)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		var smallOutgoingEvent = Event{EventNewMember, data}
-		client.egress <- smallOutgoingEvent
+
+		var outgoingEvent = Event{EventNewMember, data}
+		for c := range client.lobby.clients {
+			if c.name != client.name {
+				c.egress <- outgoingEvent
+			}
+			var smallMessage = NewMemberEvent{c.name}
+			data, err = json.Marshal(smallMessage)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			var smallOutgoingEvent = Event{EventNewMember, data}
+			client.egress <- smallOutgoingEvent
+		}
 	}
 }
 
