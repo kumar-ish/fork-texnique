@@ -181,7 +181,6 @@ func StartGameHandler(event Event, c *Client) error {
 	var exclusiveCustomProblems = chatevent.ExclusiveCustomProblems
 	if UseCustomProblems {
 		newProblems := customProblems.Problems
-		log.Println(GetProblems().Problems, randomOrder, UseCustomProblems, customProblems, exclusiveCustomProblems)
 		if !exclusiveCustomProblems {
 			localProblems := GetProblems()
 
