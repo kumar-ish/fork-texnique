@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const MAX_MESSAGE_SIZE = 512
+const MAX_MESSAGE_SIZE = 65536
 
 // ClientList is a map used to help manage a map of clients
 type ClientList map[*Client]bool
