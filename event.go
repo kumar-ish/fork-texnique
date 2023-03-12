@@ -284,10 +284,7 @@ func StartGameHandler(event Event, c *Client) error {
 
 	// Send the first problem (all users get the same problem & their question number starts off at 0)
 
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[lobby.Problems[0]]}
-	if UseCustomProblems {
-		newProblemBroadcast = NewProblemEvent{lobby.CustomProblems[lobby.CustomOrder[0]]}
-	}
+	var newProblemBroadcast = c.getNewProblem()
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
@@ -355,18 +352,36 @@ func GiveAnswerHandler(event Event, c *Client) error {
 	if user.questionNumber == len(c.lobby.Problems) || (c.lobby.CustomProblems != nil && user.questionNumber == len(c.lobby.CustomProblems)) {
 		endGame(c, "Ran out of problems!")
 	} else {
-		// Send client new problem
-		var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[user.questionNumber]}
-		if c.lobby.CustomProblems != nil {
-			newProblemBroadcast = NewProblemEvent{c.lobby.CustomProblems[user.questionNumber]}
-		}
-		data, err := json.Marshal(newProblemBroadcast)
+		c.sendClientProblem()
+	}
+
+	return nil
+}
+
+func (client *Client) getNewProblem() *NewProblemEvent {
+	lobby := client.lobby
+	user := lobby.userMapping[client.name]
+	var newProblemBroadcast *NewProblemEvent = nil
+	if lobby.CustomProblems != nil && len(lobby.CustomProblems) != user.questionNumber {
+		newProblemBroadcast = &NewProblemEvent{lobby.CustomProblems[user.questionNumber]}
+	} else if len(GetProblems().Problems) != 0 {
+		newProblemBroadcast = &NewProblemEvent{GetProblems().Problems[lobby.Problems[user.questionNumber]]}
+	}
+
+	return newProblemBroadcast
+}
+
+func (client *Client) sendClientProblem() error {
+	problem := client.getNewProblem()
+
+	if problem != nil {
+		data, err := json.Marshal(problem)
 		if err != nil {
 			return fmt.Errorf("failed to marshal broadcast message: %v", err)
 		}
 
 		var outgoingEvent = Event{EventNewProblem, data}
-		c.egress <- outgoingEvent
+		client.egress <- outgoingEvent
 	}
 
 	return nil
@@ -386,17 +401,6 @@ func RequestProblemHandler(event Event, c *Client) error {
 		return nil
 	}
 
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[user.questionNumber]]}
-	if c.lobby.CustomProblems != nil {
-		newProblemBroadcast = NewProblemEvent{c.lobby.CustomProblems[user.questionNumber]}
-	}
-	data, err := json.Marshal(newProblemBroadcast)
-	if err != nil {
-		return fmt.Errorf("failed to marshal broadcast message: %v", err)
-	}
-
-	var outgoingEvent = Event{EventNewProblem, data}
-	c.egress <- outgoingEvent
-
+	c.sendClientProblem()
 	return nil
 }
