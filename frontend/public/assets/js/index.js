@@ -491,11 +491,7 @@ function connectWebsocket(otp, lobby) {
     if (window["WebSocket"]) {
         console.log("supports websockets");
         // Connect to websocket using OTP as a GET parameter
-        let prefix = "ws";
-        if (!debug) {
-            prefix = "wss";
-        }
-        
+        let prefix = (debug) ? "ws" : "wss";
         conn = new WebSocket(prefix + `://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
 
         // Onopen
