@@ -325,6 +325,28 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 			var smallOutgoingEvent = Event{EventNewMember, data}
 			client.egress <- smallOutgoingEvent
 		}
+	} else if lobby.gameState == InPlay {
+		var startGameMessage = StartGameEvent{*lobby.startTime, lobby.timeLimit}
+
+		data, err := json.Marshal(startGameMessage)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var outgoingEvent = Event{EventStartGame, data}
+		client.egress <- outgoingEvent
+
+		newProblemMessage := client.getNewProblem()
+
+		data, err = json.Marshal(newProblemMessage)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		outgoingEvent = Event{EventNewProblem, data}
+		client.egress <- outgoingEvent
 	}
 }
 
