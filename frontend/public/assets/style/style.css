@@ -126,7 +126,9 @@ main {
 .important-numbers {
 	display: grid; 
 	grid-template-columns: max-content max-content; 
-	grid-template-rows: 1fr 1fr; 
+	grid-template-rows: 1fr 1fr;
+	align-items: center;
+	justify-content: center;
 }
 
 #top-row {
@@ -300,4 +302,90 @@ label {
 
 #skipped-problems {
 	display: none;
+}
+
+#lobby-screen {
+	border: 2px solid black;
+	height: 400px;
+	display: flex;
+}
+
+#lobby-user-manager {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+#lobby-user-list::-webkit-scrollbar {
+	display: none;
+}
+
+#lobby-user-list {
+	overflow-y: scroll;
+	flex-grow: 1;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+	padding-top: 30px;
+}
+
+#lobby-people {
+	display: flex;
+	flex-basis: 0;
+}
+
+.lobby-person {
+	margin: 5px;
+}
+
+#lobby-manager {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	border-left: 1px solid black;
+}
+
+#lobby-settings {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 10px 160px;
+	padding-top: 30px;
+}
+
+#custom-problems-textarea {
+	padding: 10px;
+	max-width: 100%;
+	line-height: 1.5;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+	box-shadow: 1px 1px 1px #999;
+	display:none;
+	box-sizing:border-box;
+	resize: none;
+}
+
+#start-multiplayer-button {
+	margin: 8px;
+}
+
+.setting {
+	display: flex;
+	flex-direction: row;
+	flex: 0 0 auto;
+}
+
+.setting-key {
+	flex: 1 1 0;
+	display: flex;
+	align-items: center;
+}
+
+.setting-value {
+	flex: 0 0 45%;
+}
+
+#lobby-settings-button {
+	float:  left;
+	margin-top: 8px;
+	margin-left: 0;
 }

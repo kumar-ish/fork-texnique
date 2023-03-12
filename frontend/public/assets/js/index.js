@@ -161,7 +161,17 @@ function startGameSetup() {
 }
 
 function startMultiplayerGame() {
-    sendEvent("start_game_owner", {});
+    var durationTime = $("#duration").val()*60;
+    var randomOrder = $("#random-order").is(":checked");
+    var useCustomProblems = $("#custom-problems").is(":checked");
+    if (useCustomProblems) {
+        var customProblems = JSON.parse($("#custom-problems-textarea").val());
+        var exclusiveCustomProbems = $("#exclusive-custom-problems").is(":checked");
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems, exclusiveCustomProbems});
+    } else {
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
+    }
+    
     $("#participant-scores").show();
     return false;
 }
@@ -321,6 +331,12 @@ class NewMemberEvent {
     }
 }
 
+class RemoveMemberEvent {
+    constructor(name) {
+        this.name = name;
+    }
+}
+
 class AnswerMessageEvent {
     constructor(answer) {
         this.answer = answer;
@@ -396,18 +412,18 @@ function updateScore(scoreUpdateEvent) {
  * based on the type field
  * */
 function routeEvent(event) {
-
     if (event.type === undefined) {
         alert("no 'type' field in event");
     }
 
     switch (event.type) {
         case "new_member":
-            // TODO
             const newMemberEvent = Object.assign(new NewMemberEvent, event.payload);
+            addNewUser(newMemberEvent.name);
             break;
         case "remove_member":
-            // TODO
+            const removeMemberEvent = Object.assign(new RemoveMemberEvent, event.payload);
+            removeUser(removeMemberEvent.name);
             break;
         case "start_game":
             const startGameEvent = Object.assign(new StartGameEvent, event.payload);
@@ -436,6 +452,42 @@ function routeEvent(event) {
 }
 
 /**
+ * Takes in the username of a joined user, then adds them to the lobby screen
+ * @param {string} username 
+ */
+function addNewUser(username) {
+    const newButton = document.createElement("button");
+    newButton.textContent = username;
+    newButton.classList.add("latex-button");
+    newButton.classList.add("lobby-person");
+    const lobbyPeople = document.getElementsByClassName("lobby-people")[0];
+    lobbyPeople.appendChild(newButton)
+    // const lobbyCount = document.getElementById("lobby-user-count");
+    // lobbyCount.innerText = `People: ${lobbyPeople.childElementCount}/100`
+}
+
+/**
+ * Removes a given user from the lobby screen
+ * @param {string} username 
+ */
+function removeUser(username) {
+    const people = document.getElementsByClassName("lobby-person");
+    people = people.filter((person) => {person.textContent == username});
+    if (people.length != 0) {
+        people[0].remove();
+    }
+}
+
+function toggleSettingsPanel() {
+    var settingsPanel = $("#lobby-manager");
+    if (settingsPanel.css("display") == "none") {
+        settingsPanel.show()
+    } else {
+        settingsPanel.hide();
+    }
+}
+
+/**
  * ConnectWebsocket will connect to websocket and add listeners
  * */
 function connectWebsocket(otp, lobby) {
@@ -443,7 +495,12 @@ function connectWebsocket(otp, lobby) {
     if (window["WebSocket"]) {
         console.log("supports websockets");
         // Connect to websocket using OTP as a GET parameter
-        conn = new WebSocket(`ws://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
+        let prefix = "ws";
+        if (!debug) {
+            prefix = "wss";
+        }
+        
+        conn = new WebSocket(prefix + `://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
 
         // Onopen
         conn.onopen = function (evt) {
@@ -492,7 +549,18 @@ function login() {
     }).then((data) => {
         // Now we have a OTP, send a Request to Connect to WebSocket
         $("#login-form").hide();
-        $("#start-multiplayer-button").show();
+        $("#lobby-screen").show();
+        $("#lobby-settings-button").show();
+        let copyPromptText = `Copy this link to invite others to your lobby:`
+        $("#copy-lobby").text(copyPromptText);
+
+        // Copy link to clipboard button
+        $("#copy-lobby").append("<button id='copy-lobby-button' class='latex-button'></button>")
+        let copyButton = document.getElementById("copy-lobby-button");
+        copyButton.addEventListener("click", function() {
+            navigator.clipboard.writeText(window.location.href);
+        });
+        $("#copy-lobby-button").text("Copy Link");
         connectWebsocket(data.otp, data.lobby);
     }).catch((e) => { alert(e) });
     return false;
@@ -571,6 +639,8 @@ function createLobby() {
 
         copyButton(newURL);
         convertLobbyToLogin();
+
+        $("#lobby-manager").show();
     }).catch((e) => { alert(e) });
     return false;
 }
@@ -643,6 +713,10 @@ $(document).ready(function() {
         createLobby();
     });
 
+    $("#lobby-settings-button").click(function() {
+        toggleSettingsPanel();
+    })
+
     $("#reset-button-timed").click(function() {
         startGame(true);
     });
@@ -685,6 +759,15 @@ $(document).ready(function() {
       }
     });
 
+    $("#duration").on('input', function() {
+        let durationValue = document.getElementById("duration").value;
+        if (durationValue == 1) {
+            $("#durationTime").text("Duration (1 minute)");
+        } else {
+            $("#durationTime").text("Duration (" + durationValue + " minutes)");
+        };
+    });
+
     if (isMultiplayer) {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
@@ -716,6 +799,18 @@ $(document).ready(function() {
                 }
             }).catch((e) => { alert(e) });
         }
+
+        $("#custom-problems").change(function() {
+            if($(this).is(':checked') ) {
+                $("#custom-problems-textarea").show();
+                $("#custom-problems-exclusive").show();
+            }
+            else {
+                $("#custom-problems-textarea").hide();
+                $("#custom-problems-exclusive").hide();
+            }
+        });
+
     } else {
         $("#skip-button").after("<button id='end-game-button' class='latex-button'>End Game</button>");
 

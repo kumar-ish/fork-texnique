@@ -83,6 +83,9 @@ type Lobby struct {
 	// List of 100 problems -- stores the question numbers
 	Problems [100]int
 
+	CustomProblems []Problem
+	CustomOrder    []int
+
 	clients ClientList // TODO: investigate needs to be merged with userMapping (?)
 
 	// Using a syncMutex here to be able to lcok state before editing clients
@@ -113,16 +116,18 @@ func NewManager(ctx context.Context) *Manager {
 
 func NewLobby(ctx context.Context, name string, id string) *Lobby {
 	l := &Lobby{
-		userMapping: make(map[string]User),
-		otpMapping:  make(map[string]string),
-		timeLimit:   30,
-		id:          id,
-		name:        name,
-		owner:       nil,
-		gameState:   WaitingForPlayers,
-		startTime:   nil,
-		clients:     make(ClientList),
-		otps:        NewRetentionMap(ctx, 5*time.Second),
+		userMapping:    make(map[string]User),
+		otpMapping:     make(map[string]string),
+		timeLimit:      600,
+		id:             id,
+		name:           name,
+		owner:          nil,
+		gameState:      WaitingForPlayers,
+		startTime:      nil,
+		clients:        make(ClientList),
+		otps:           NewRetentionMap(ctx, 5*time.Second),
+		CustomProblems: nil,
+		CustomOrder:    nil,
 	}
 
 	localProblems := GetProblems()
@@ -291,10 +296,36 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 	// Create New Client
 	client := NewClient(conn, m, lobby, otp)
 	// Add the newly created client to the manager
-	m.lobbies[lobbyName].addClient(client)
+	lobby.addClient(client)
 
 	go client.readMessages()
 	go client.writeMessages()
+
+	if lobby.gameState == WaitingForPlayers {
+		// Sending newMember events to all joined clients
+		var broadMessage = NewMemberEvent{client.name}
+
+		data, err := json.Marshal(broadMessage)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var outgoingEvent = Event{EventNewMember, data}
+		for c := range client.lobby.clients {
+			if c.name != client.name {
+				c.egress <- outgoingEvent
+			}
+			var smallMessage = NewMemberEvent{c.name}
+			data, err = json.Marshal(smallMessage)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			var smallOutgoingEvent = Event{EventNewMember, data}
+			client.egress <- smallOutgoingEvent
+		}
+	}
 }
 
 func (m *Manager) lobbyStatus(w http.ResponseWriter, r *http.Request) {
