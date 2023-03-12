@@ -172,7 +172,6 @@ function startMultiplayerGame() {
         sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
     }
     
-    $("#participant-scores").show();
     return false;
 }
 
