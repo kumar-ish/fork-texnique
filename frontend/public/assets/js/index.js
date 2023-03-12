@@ -307,9 +307,6 @@ async function validateProblem() {
     }
 }
 
-var globalOtp = "";
-var globalUsername = "";
-
 /**
  * Event is used to wrap all messages Send and Recieved
  * on the Websocket
@@ -503,14 +500,11 @@ function connectWebsocket(otp, lobby) {
 
         // Onopen
         conn.onopen = function (evt) {
-            globalUsername = username;
-            globalOtp = otp;
-            document.getElementById("connection-header").innerHTML = "Connected to Websocket: true";
+            alert("Connected to the game!");
         }
 
         conn.onclose = function (evt) {
-            // Set disconnected
-            document.getElementById("connection-header").innerHTML = "Connected to Websocket: false";
+            alert("Disconnected; try logging into the lobby again!");
         }
 
         // Add a listener to the onmessage event
