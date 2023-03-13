@@ -233,11 +233,12 @@ func StartGameHandler(event Event, c *Client) error {
 		lobby.useCustom = true
 		lobby.CustomProblems = customProblems.Problems
 	}
-	lobby.CustomOrder = make([]int, len(lobby.getLobbyProblems()))
+	lobbyProblems := lobby.getLobbyProblems()
+	lobby.CustomOrder = make([]int, len(lobbyProblems))
 
 	if randomOrder {
-		booleanArray := make([]bool, len(lobby.CustomProblems))
-		for i := 0; i < len(lobby.getLobbyProblems()); i++ {
+		booleanArray := make([]bool, len(lobbyProblems))
+		for i := 0; i < len(lobbyProblems); i++ {
 			x := rand.Intn(len(booleanArray))
 			for booleanArray[x] {
 				x = rand.Intn(len(booleanArray))
@@ -246,7 +247,7 @@ func StartGameHandler(event Event, c *Client) error {
 			booleanArray[x] = true
 		}
 	} else {
-		for i := 0; i < len(lobby.getLobbyProblems()); i++ {
+		for i := 0; i < len(lobbyProblems); i++ {
 			lobby.CustomOrder[i] = i
 		}
 	}
