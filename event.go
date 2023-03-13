@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -55,7 +54,7 @@ const (
 	EventGiveAnswer = "give_answer"
 )
 
-const TIME_TO_START_GAME = 10 * time.Second
+const TIME_TO_START_GAME = 0 * time.Second
 
 // NewMemberEvent is returned when a new member joins the game
 type NewMemberEvent struct {
@@ -73,17 +72,12 @@ type StartGameEvent struct {
 	Duration       int       `json:"duration"`
 }
 
-type ProblemsObject struct {
-	Problems []Problem `json:"problems"`
-}
-
 // AnswerEvent is passed in when the game is started by the owner
 type RequestStartGameEvent struct {
-	Duration                int            `json:"durationTime"`
-	OrderIsRandom           bool           `json:"randomOrder"`
-	UseCustomProblems       bool           `json:"useCustomProblems"`
-	CustomProblems          ProblemsObject `json:"customProblems"`
-	ExclusiveCustomProblems bool           `json:"exclusiveCustomProbems"`
+	Duration          int      `json:"durationTime"`
+	OrderIsRandom     bool     `json:"randomOrder"`
+	UseCustomProblems bool     `json:"useCustomProblems"`
+	CustomProblems    Problems `json:"customProblems"`
 }
 
 // NewProblemEvent is returned when a new problem is generated
@@ -129,6 +123,14 @@ func GetProblems() *Problems {
 	}
 
 	return problems
+}
+
+func (l *Lobby) getLobbyProblems() []Problem {
+	if l.useCustom {
+		return l.CustomProblems
+	} else {
+		return GetProblems().Problems
+	}
 }
 
 func endGame(c *Client, message string) error {
@@ -220,50 +222,40 @@ func StartGameHandler(event Event, c *Client) error {
 	if err := json.Unmarshal(event.Payload, &chatevent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
-	log.Println(chatevent)
-	c.lobby.timeLimit = chatevent.Duration
-	var randomOrder = chatevent.OrderIsRandom
-	var UseCustomProblems = chatevent.UseCustomProblems
-	var customProblems = chatevent.CustomProblems
-	var exclusiveCustomProblems = chatevent.ExclusiveCustomProblems
-	if UseCustomProblems {
-		newProblems := customProblems.Problems
-		if !exclusiveCustomProblems {
-			localProblems := GetProblems()
 
-			newProblems = append(newProblems, localProblems.Problems...)
-		}
-		c.lobby.CustomProblems = newProblems
-		booleanArray := make([]bool, len(c.lobby.CustomProblems))
-		c.lobby.CustomOrder = make([]int, len(c.lobby.CustomProblems))
-		for i := 0; i < len(c.lobby.CustomProblems); i++ {
-			// Generate x as a random value between 0 and the length of the problems array
-			// and as long as the randomly chosen problem isn't already selected
+	lobby.timeLimit = chatevent.Duration
+
+	var randomOrder = chatevent.OrderIsRandom
+	var useCustomProblems = chatevent.UseCustomProblems
+	var customProblems = chatevent.CustomProblems
+
+	if useCustomProblems {
+		lobby.useCustom = true
+		lobby.CustomProblems = customProblems.Problems
+	}
+	lobbyProblems := lobby.getLobbyProblems()
+	lobby.CustomOrder = make([]int, len(lobbyProblems))
+
+	if randomOrder {
+		booleanArray := make([]bool, len(lobbyProblems))
+		for i := 0; i < len(lobbyProblems); i++ {
 			x := rand.Intn(len(booleanArray))
 			for booleanArray[x] {
 				x = rand.Intn(len(booleanArray))
 			}
-			if randomOrder {
-				c.lobby.CustomOrder[i] = x
-			} else {
-				c.lobby.CustomOrder[i] = i
-			}
+			lobby.CustomOrder[i] = x
 			booleanArray[x] = true
 		}
 	} else {
-		if !randomOrder {
-
-			for i := 0; i < len(c.lobby.Problems); i++ {
-
-				lobby.Problems[i] = i
-			}
+		for i := 0; i < len(lobbyProblems); i++ {
+			lobby.CustomOrder[i] = i
 		}
 	}
 
 	startTime := time.Now().Add(TIME_TO_START_GAME)
 	lobby.startTime = &startTime
 
-	var broadMessage = StartGameEvent{startTime, c.lobby.timeLimit}
+	var broadMessage = StartGameEvent{startTime, lobby.timeLimit}
 
 	if !DEBUG {
 		time.Sleep(TIME_TO_START_GAME)
@@ -284,10 +276,7 @@ func StartGameHandler(event Event, c *Client) error {
 
 	// Send the first problem (all users get the same problem & their question number starts off at 0)
 
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[lobby.Problems[0]]}
-	if UseCustomProblems {
-		newProblemBroadcast = NewProblemEvent{lobby.CustomProblems[lobby.CustomOrder[0]]}
-	}
+	var newProblemBroadcast = c.getNewProblem()
 
 	data, err = json.Marshal(newProblemBroadcast)
 	if err != nil {
@@ -308,7 +297,7 @@ func StartGameHandler(event Event, c *Client) error {
 			lobby.removeClient(client)
 		}
 
-		c.lobby.saveEndedGame()
+		lobby.saveEndedGame()
 		// We can delete the lobby from the map now and have that be GC'd later
 		delete(c.manager.lobbies, lobby.id)
 	})
@@ -326,7 +315,8 @@ func GiveAnswerHandler(event Event, c *Client) error {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
 	user := c.lobby.userMapping[c.name]
-	problem := GetProblems().Problems[c.lobby.Problems[user.questionNumber]]
+	problem := c.lobby.getLobbyProblems()[c.lobby.CustomOrder[user.questionNumber]]
+
 	if !problem.CheckAnswer(chatevent.Answer) {
 		c.egress <- Event{EventWrongAnswer, nil}
 		return fmt.Errorf("bad payload in request")
@@ -352,22 +342,35 @@ func GiveAnswerHandler(event Event, c *Client) error {
 		client.egress <- clientsScoreUpdateEvent
 	}
 
-	if user.questionNumber == len(c.lobby.Problems) || (c.lobby.CustomProblems != nil && user.questionNumber == len(c.lobby.CustomProblems)) {
+	if user.questionNumber == len(c.lobby.getLobbyProblems()) {
 		endGame(c, "Ran out of problems!")
 	} else {
-		// Send client new problem
-		var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[user.questionNumber]}
-		if c.lobby.CustomProblems != nil {
-			newProblemBroadcast = NewProblemEvent{c.lobby.CustomProblems[user.questionNumber]}
-		}
-		data, err := json.Marshal(newProblemBroadcast)
-		if err != nil {
-			return fmt.Errorf("failed to marshal broadcast message: %v", err)
-		}
-
-		var outgoingEvent = Event{EventNewProblem, data}
-		c.egress <- outgoingEvent
+		c.sendClientProblem()
 	}
+
+	return nil
+}
+
+func (client *Client) getNewProblem() NewProblemEvent {
+	lobby := client.lobby
+	user := lobby.userMapping[client.name]
+
+	newProblemBroadcast := NewProblemEvent{lobby.getLobbyProblems()[lobby.CustomOrder[user.questionNumber]]}
+
+	return newProblemBroadcast
+}
+
+// @dev Pre-condition: client hasn't run out of problems
+func (client *Client) sendClientProblem() error {
+	newProblemBroadcast := client.getNewProblem()
+
+	data, err := json.Marshal(newProblemBroadcast)
+	if err != nil {
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
+	}
+
+	var outgoingEvent = Event{EventNewProblem, data}
+	client.egress <- outgoingEvent
 
 	return nil
 }
@@ -381,22 +384,11 @@ func RequestProblemHandler(event Event, c *Client) error {
 
 	c.lobby.userMapping[c.name] = user
 
-	if user.questionNumber == len(c.lobby.Problems) || (c.lobby.CustomProblems != nil && user.questionNumber == len(c.lobby.CustomProblems)) {
+	if user.questionNumber == len(c.lobby.getLobbyProblems()) {
 		endGame(c, "Ran out of questions!")
 		return nil
 	}
 
-	var newProblemBroadcast = NewProblemEvent{GetProblems().Problems[c.lobby.Problems[user.questionNumber]]}
-	if c.lobby.CustomProblems != nil {
-		newProblemBroadcast = NewProblemEvent{c.lobby.CustomProblems[user.questionNumber]}
-	}
-	data, err := json.Marshal(newProblemBroadcast)
-	if err != nil {
-		return fmt.Errorf("failed to marshal broadcast message: %v", err)
-	}
-
-	var outgoingEvent = Event{EventNewProblem, data}
-	c.egress <- outgoingEvent
-
+	c.sendClientProblem()
 	return nil
 }

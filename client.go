@@ -55,7 +55,7 @@ func (c *Client) readMessages() {
 	}()
 
 	var maxMessageSize int64 = PLAYER_MAX_MESSAGE_SIZE
-	if c.lobby.owner == &c.name {
+	if *c.lobby.owner == c.name {
 		maxMessageSize = OWNER_MAX_MESSAGE_SIZE
 	}
 
