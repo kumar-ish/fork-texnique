@@ -167,8 +167,7 @@ function startMultiplayerGame() {
     var useCustomProblems = $("#custom-problems").is(":checked");
     if (useCustomProblems) {
         var customProblems = JSON.parse($("#custom-problems-textarea").val());
-        var exclusiveCustomProbems = $("#exclusive-custom-problems").is(":checked");
-        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems, exclusiveCustomProbems});
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems});
     } else {
         sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
     }
@@ -799,11 +798,9 @@ $(document).ready(function() {
         $("#custom-problems").change(function() {
             if($(this).is(':checked') ) {
                 $("#custom-problems-textarea").show();
-                $("#custom-problems-exclusive").show();
             }
             else {
                 $("#custom-problems-textarea").hide();
-                $("#custom-problems-exclusive").hide();
             }
         });
 
