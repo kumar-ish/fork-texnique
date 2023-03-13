@@ -18,6 +18,7 @@ let showSkipped = false;
 
 // Set in respective HTML file (if relevant)
 let isMultiplayer = false;
+let conn = undefined;
 
 function mobileCheck() {
   var check = false;
@@ -551,7 +552,10 @@ function login() {
         });
         $("#copy-lobby-button").text("Copy Link");
         connectWebsocket(data.otp, data.lobby);
-    }).catch((e) => { alert(e) });
+    }).catch((e) => { 
+        conn = undefined;
+        alert(e);
+    });
     return false;
 }
 
@@ -690,7 +694,10 @@ $(document).ready(function() {
     });
 
     $("#login-button").click(function() {
-        login();
+        if (conn === undefined || conn.readyState == WebSocket.OPEN) {
+            conn = 1;
+            login();
+        }
     });
 
     $("#start-multiplayer-button").click(function() {
