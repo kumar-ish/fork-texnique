@@ -423,10 +423,13 @@ function routeEvent(event) {
             break;
         case "start_game":
             const startGameEvent = Object.assign(new StartGameEvent, event.payload);
-            duration = parseInt(startGameEvent.duration)
+            const duration = parseInt(startGameEvent.duration);
+            const startTimestamp = new Date(startGameEvent.startTimestamp);
+            const timeSinceStart = Math.round(((new Date()).getTime() - startTimestamp.getTime()) / 1000);
+
             startGameSetup();
             $("#participant-scores").show();
-            startTimer(duration, function () {})
+            startTimer(duration - timeSinceStart, function () {})
             break;
         case "new_problem":
             const problemEvent = Object.assign(new NewProblemEvent, event.payload.problem);

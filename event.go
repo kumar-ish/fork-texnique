@@ -54,7 +54,7 @@ const (
 	EventGiveAnswer = "give_answer"
 )
 
-const TIME_TO_START_GAME = 10 * time.Second
+const TIME_TO_START_GAME = 0 * time.Second
 
 // NewMemberEvent is returned when a new member joins the game
 type NewMemberEvent struct {
