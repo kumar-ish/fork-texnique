@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -80,9 +79,7 @@ type Lobby struct {
 	// otp to username
 	otpMapping map[string]string
 
-	// List of 100 problems -- stores the question numbers
-	Problems [100]int
-
+	useCustom      bool
 	CustomProblems []Problem
 	CustomOrder    []int
 
@@ -128,22 +125,6 @@ func NewLobby(ctx context.Context, name string, id string) *Lobby {
 		otps:           NewRetentionMap(ctx, 5*time.Second),
 		CustomProblems: nil,
 		CustomOrder:    nil,
-	}
-
-	localProblems := GetProblems()
-	// declare a boolean array the same size as the problems array
-	booleanArray := make([]bool, len(localProblems.Problems))
-
-	for i := 0; i < len(l.Problems); i++ {
-		// Generate x as a random value between 0 and the length of the problems array
-		// and as long as the randomly chosen problem isn't already selected
-		x := rand.Intn(len(booleanArray))
-		for booleanArray[x] {
-			x = rand.Intn(len(booleanArray))
-		}
-
-		l.Problems[i] = x
-		booleanArray[x] = true
 	}
 
 	return l
@@ -325,6 +306,28 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 			var smallOutgoingEvent = Event{EventNewMember, data}
 			client.egress <- smallOutgoingEvent
 		}
+	} else if lobby.gameState == InPlay {
+		var startGameMessage = StartGameEvent{*lobby.startTime, lobby.timeLimit}
+
+		data, err := json.Marshal(startGameMessage)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var outgoingEvent = Event{EventStartGame, data}
+		client.egress <- outgoingEvent
+
+		newProblemMessage := client.getNewProblem()
+
+		data, err = json.Marshal(newProblemMessage)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		outgoingEvent = Event{EventNewProblem, data}
+		client.egress <- outgoingEvent
 	}
 }
 

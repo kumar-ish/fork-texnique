@@ -9,6 +9,10 @@ main {
 	font-family: Katex_Main, serif;
 }
 
+footer {
+	font-family: Katex_Main, serif;
+}
+
 .katex {
 	font-size: 1.1em;
 }
@@ -325,7 +329,7 @@ label {
 	flex-grow: 1;
 	-ms-overflow-style: none;
 	scrollbar-width: none;
-	padding-top: 30px;
+	padding-top: 10px;
 }
 
 #lobby-people {
@@ -349,7 +353,7 @@ label {
 	display: flex;
 	flex-direction: column;
 	padding: 10px 160px;
-	padding-top: 30px;
+	padding-top: 10px;
 }
 
 #custom-problems-textarea {

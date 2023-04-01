@@ -18,6 +18,7 @@ let showSkipped = false;
 
 // Set in respective HTML file (if relevant)
 let isMultiplayer = false;
+let conn = undefined;
 
 function mobileCheck() {
   var check = false;
@@ -166,13 +167,11 @@ function startMultiplayerGame() {
     var useCustomProblems = $("#custom-problems").is(":checked");
     if (useCustomProblems) {
         var customProblems = JSON.parse($("#custom-problems-textarea").val());
-        var exclusiveCustomProbems = $("#exclusive-custom-problems").is(":checked");
-        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems, exclusiveCustomProbems});
+        sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems, customProblems});
     } else {
         sendEvent("start_game_owner", {durationTime, randomOrder, useCustomProblems});
     }
     
-    $("#participant-scores").show();
     return false;
 }
 
@@ -308,9 +307,6 @@ async function validateProblem() {
     }
 }
 
-var globalOtp = "";
-var globalUsername = "";
-
 /**
  * Event is used to wrap all messages Send and Recieved
  * on the Websocket
@@ -427,10 +423,13 @@ function routeEvent(event) {
             break;
         case "start_game":
             const startGameEvent = Object.assign(new StartGameEvent, event.payload);
-            duration = parseInt(startGameEvent.duration)
+            const duration = parseInt(startGameEvent.duration);
+            const startTimestamp = new Date(startGameEvent.startTimestamp);
+            const timeSinceStart = Math.round(((new Date()).getTime() - startTimestamp.getTime()) / 1000);
+
             startGameSetup();
             $("#participant-scores").show();
-            startTimer(duration, function () {})
+            startTimer(duration - timeSinceStart, function () {})
             break;
         case "new_problem":
             const problemEvent = Object.assign(new NewProblemEvent, event.payload.problem);
@@ -495,23 +494,16 @@ function connectWebsocket(otp, lobby) {
     if (window["WebSocket"]) {
         console.log("supports websockets");
         // Connect to websocket using OTP as a GET parameter
-        let prefix = "ws";
-        if (!debug) {
-            prefix = "wss";
-        }
-        
+        let prefix = (debug) ? "ws" : "wss";
         conn = new WebSocket(prefix + `://${document.location.host}/ws?otp=${otp}&l=${lobby}`);
 
         // Onopen
         conn.onopen = function (evt) {
-            globalUsername = username;
-            globalOtp = otp;
-            document.getElementById("connection-header").innerHTML = "Connected to Websocket: true";
+            alert("Connected to the game!");
         }
 
         conn.onclose = function (evt) {
-            // Set disconnected
-            document.getElementById("connection-header").innerHTML = "Connected to Websocket: false";
+            alert("Disconnected; try logging into the lobby again!");
         }
 
         // Add a listener to the onmessage event
@@ -562,7 +554,10 @@ function login() {
         });
         $("#copy-lobby-button").text("Copy Link");
         connectWebsocket(data.otp, data.lobby);
-    }).catch((e) => { alert(e) });
+    }).catch((e) => { 
+        conn = undefined;
+        alert(e);
+    });
     return false;
 }
 
@@ -701,7 +696,10 @@ $(document).ready(function() {
     });
 
     $("#login-button").click(function() {
-        login();
+        if (conn === undefined || conn.readyState == WebSocket.OPEN) {
+            conn = 1;
+            login();
+        }
     });
 
     $("#start-multiplayer-button").click(function() {
@@ -803,11 +801,9 @@ $(document).ready(function() {
         $("#custom-problems").change(function() {
             if($(this).is(':checked') ) {
                 $("#custom-problems-textarea").show();
-                $("#custom-problems-exclusive").show();
             }
             else {
                 $("#custom-problems-textarea").hide();
-                $("#custom-problems-exclusive").hide();
             }
         });
 
