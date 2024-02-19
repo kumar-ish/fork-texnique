@@ -1,0 +1,77 @@
+syntax = "proto2";
+
+option go_package = "main/";
+
+import "google/protobuf/timestamp.proto";
+
+message Problem {
+  required string latex = 1;
+  required string description = 2;
+  required string title = 3;
+}
+
+message ServerSent {
+  message RemoveMember {
+    required string name = 1;
+  }
+  message AddMember {
+    required string name = 1;
+  }
+  message StartGame {
+    required google.protobuf.Timestamp startTime = 1;
+    required google.protobuf.Timestamp duration = 2;
+  }
+  message EndGame {}
+  message NewProblem {
+    required Problem problem = 1;
+  }
+  message ScoreUpdate {
+    required string name = 1;
+    required int32 score = 2;
+  }
+  message WrongAnswer {}
+
+  oneof message {
+    RemoveMember remove = 1;
+    AddMember add = 2;
+    StartGame start = 3;
+    NewProblem new_problem = 4;
+    EndGame end = 5;
+    ScoreUpdate score_update = 6;
+    WrongAnswer wrong = 7;
+  }
+}
+
+message ClientSent {
+  message RequestStart {
+    required google.protobuf.Timestamp duration = 1;
+    required bool is_random = 2;
+    repeated Problem problems = 3;
+  }
+  message GiveAnswer {
+    required string answer = 1;
+  }
+  message RequestProblem {}
+
+  oneof message {
+    RequestStart request_start = 1;
+    GiveAnswer answer = 2;
+    RequestProblem request_problem = 3;
+  }
+}
+
+message CreateLobbyReq {
+  required string lobby_name = 1;
+}
+message CreateLobbyRes {
+  required string lobby_id = 1;
+}
+message LoginRequest {
+  required string username = 1;
+  optional string password = 2;
+  required string lobby_id = 3;
+}
+message LoginResponse {
+  required string otp = 1;
+  required bool is_owner = 2;
+}
